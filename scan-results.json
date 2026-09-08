@@ -1,8 +1,8 @@
 {
-  "scanId": "craigslist-AM-20260908",
+  "scanId": "offerup-20260908",
   "timestamp": "2026-09-08T07:00:00-04:00",
-  "source": "craigslist",
-  "listingCount": 6,
+  "source": "offerup",
+  "listingCount": 7,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -87,11 +87,26 @@
       "location": "Mooresville NC",
       "daysToSell": 12,
       "source": "Facebook Marketplace"
+    },
+    {
+      "title": "Ocean Kayak",
+      "category": "Kayak",
+      "askingPrice": 100,
+      "newPrice": 399,
+      "percentOfNew": 25,
+      "roi": 75,
+      "verdict": "GO",
+      "url": "https://offerup.com/item/detail/f0472017-aad3-37d8-b946-742a03c1c3fa",
+      "imageUrl": "",
+      "location": "Charlotte, NC",
+      "daysToSell": 7,
+      "source": "OfferUp",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 0,
+    "added": 1,
     "updated": 0,
-    "total": 6
+    "total": 7
   }
 }
