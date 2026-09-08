@@ -323,13 +323,169 @@
 }
 
 @media (max-width: 700px) {
+    .scan-feed-section {
+        margin: 12px 0;
+        padding: 12px;
+    }
+
+    .scan-feed-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+
+    .scan-feed-header h2 {
+        font-size: 1.2rem;
+    }
+
+    .scan-stats {
+        width: 100%;
+        gap: 8px;
+    }
+
+    .scan-stat {
+        flex: 1;
+        min-width: 60px;
+        padding: 6px 8px;
+    }
+
+    .scan-stat span {
+        font-size: 0.6rem;
+    }
+
+    .scan-stat strong {
+        font-size: 0.95rem;
+    }
+
     .scan-grid {
         grid-template-columns: 1fr;
+        gap: 10px;
     }
+
     .scan-filters {
         flex-direction: column;
+        gap: 8px;
+        margin-bottom: 10px;
     }
+
     .scan-filters label {
         min-width: 0;
+        width: 100%;
+    }
+
+    .scan-filters select,
+    .scan-filters input {
+        height: 44px;
+        font-size: 16px;
+    }
+
+    .scan-filters .reset-btn {
+        width: 100%;
+        height: 44px;
+    }
+
+    .scan-card {
+        padding: 12px;
+        gap: 8px;
+    }
+
+    .scan-card-top {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .scan-card-title {
+        font-size: 0.95rem;
+    }
+
+    .scan-card-category {
+        align-self: flex-start;
+    }
+
+    .scan-card-image {
+        height: 160px;
+    }
+
+    .scan-price-bar {
+        gap: 6px;
+    }
+
+    .scan-price-item {
+        padding: 6px 4px;
+    }
+
+    .scan-price-item span {
+        font-size: 0.55rem;
+    }
+
+    .scan-price-item strong {
+        font-size: 0.95rem;
+    }
+
+    .scan-roi-row {
+        padding: 6px 8px;
+    }
+
+    .scan-roi-label {
+        font-size: 0.65rem;
+    }
+
+    .scan-roi-value {
+        font-size: 1.05rem;
+    }
+
+    .scan-verdict {
+        font-size: 0.65rem;
+        padding: 4px 8px;
+    }
+
+    .scan-card-actions {
+        gap: 6px;
+    }
+
+    .scan-card-actions button {
+        height: 40px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .scan-feed-section {
+        margin: 8px 0;
+        padding: 10px;
+    }
+
+    .scan-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+
+    .scan-stat {
+        min-width: 0;
+    }
+
+    .scan-card-image {
+        height: 140px;
+    }
+
+    .scan-price-bar {
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 4px;
+    }
+
+    .scan-price-item strong {
+        font-size: 0.85rem;
+    }
+
+    .scan-card-actions {
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .scan-card-actions button {
+        width: 100%;
+        height: 38px;
     }
 }
