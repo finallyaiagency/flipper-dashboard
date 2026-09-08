@@ -1,0 +1,91 @@
+{
+  "scanId": "scan-sample-001",
+  "timestamp": "2026-09-07T06:00:00Z",
+  "source": "daily-flip-search",
+  "listings": [
+    {
+      "title": "Pelican Argo 100X 10ft Kayak",
+      "category": "Kayak",
+      "askingPrice": 60,
+      "newPrice": 399,
+      "percentOfNew": 15,
+      "roi": 110,
+      "verdict": "STRONG GO",
+      "url": "https://www.facebook.com/marketplace/item/example1/",
+      "imageUrl": "",
+      "location": "Salisbury NC",
+      "daysToSell": 7,
+      "source": "Facebook Marketplace"
+    },
+    {
+      "title": "Jackery Explorer 2000 Pro Portable Power Station",
+      "category": "Power Station",
+      "askingPrice": 465,
+      "newPrice": 1799,
+      "percentOfNew": 26,
+      "roi": 75,
+      "verdict": "GO",
+      "url": "https://www.facebook.com/marketplace/item/example2/",
+      "imageUrl": "",
+      "location": "Charlotte NC",
+      "daysToSell": 14,
+      "source": "Facebook Marketplace"
+    },
+    {
+      "title": "EcoFlow 400W Portable Solar Panel",
+      "category": "Solar Panel",
+      "askingPrice": 250,
+      "newPrice": 699,
+      "percentOfNew": 36,
+      "roi": 60,
+      "verdict": "GO",
+      "url": "https://www.facebook.com/marketplace/item/example3/",
+      "imageUrl": "",
+      "location": "Concord NC",
+      "daysToSell": 10,
+      "source": "Facebook Marketplace"
+    },
+    {
+      "title": "Lifetime Wave 6ft Youth Kayak",
+      "category": "Kayak",
+      "askingPrice": 40,
+      "newPrice": 149,
+      "percentOfNew": 27,
+      "roi": 80,
+      "verdict": "GO",
+      "url": "https://www.facebook.com/marketplace/item/example4/",
+      "imageUrl": "",
+      "location": "Kannapolis NC",
+      "daysToSell": 5,
+      "source": "Facebook Marketplace"
+    },
+    {
+      "title": "Anker SOLIX F2000 2048Wh Power Station",
+      "category": "Power Station",
+      "askingPrice": 670,
+      "newPrice": 1999,
+      "percentOfNew": 34,
+      "roi": 55,
+      "verdict": "POSSIBLE",
+      "url": "https://www.facebook.com/marketplace/item/example5/",
+      "imageUrl": "",
+      "location": "Statesville NC",
+      "daysToSell": 21,
+      "source": "Facebook Marketplace"
+    },
+    {
+      "title": "Bote Boteboard Aero 11-6 Inflatable SUP",
+      "category": "SUP",
+      "askingPrice": 350,
+      "newPrice": 1199,
+      "percentOfNew": 29,
+      "roi": 65,
+      "verdict": "GO",
+      "url": "https://www.facebook.com/marketplace/item/example6/",
+      "imageUrl": "",
+      "location": "Mooresville NC",
+      "daysToSell": 12,
+      "source": "Facebook Marketplace"
+    }
+  ]
+}

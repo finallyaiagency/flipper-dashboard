@@ -1,0 +1,335 @@
+/* Flipper Dashboard — Daily Scan Feed Styles */
+.scan-feed-section {
+    margin: 20px 0;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    padding: 18px;
+}
+
+.scan-feed-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.scan-feed-header h2 {
+    margin: 0;
+    font-size: clamp(1.2rem, 2vw, 1.6rem);
+    font-weight: 900;
+}
+
+.scan-stats {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+}
+
+.scan-stat {
+    text-align: center;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    background: rgba(16, 20, 17, 0.64);
+    min-width: 70px;
+}
+
+.scan-stat span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.scan-stat strong {
+    display: block;
+    margin-top: 4px;
+    color: var(--hud);
+    font-size: 1.1rem;
+    font-weight: 900;
+}
+
+.scan-filters {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.scan-filters label {
+    min-width: 140px;
+}
+
+.scan-filters select,
+.scan-filters input {
+    width: 100%;
+    height: 38px;
+    margin-top: 6px;
+    border: 1px solid rgba(244, 240, 223, 0.2);
+    background: rgba(9, 13, 11, 0.84);
+    color: var(--ink);
+    padding: 0 10px;
+    font: inherit;
+}
+
+.scan-filters .reset-btn {
+    height: 38px;
+    padding: 0 14px;
+}
+
+.scan-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 14px;
+}
+
+.scan-card {
+    border: 1px solid var(--line);
+    background: rgba(16, 20, 17, 0.78);
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.15s ease;
+}
+
+.scan-card:hover {
+    border-color: rgba(66, 245, 167, 0.4);
+}
+
+.scan-card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 10px;
+}
+
+.scan-card-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    line-height: 1.25;
+    color: var(--ink);
+    flex: 1;
+}
+
+.scan-card-category {
+    font-size: 0.68rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 3px 7px;
+    border: 1px solid var(--line);
+    white-space: nowrap;
+}
+
+.scan-card-image {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    border: 1px solid var(--line);
+    background: rgba(9, 13, 11, 0.6);
+}
+
+.scan-card-image.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.scan-price-bar {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+    text-align: center;
+}
+
+.scan-price-item {
+    padding: 8px 4px;
+    border: 1px solid var(--line);
+    background: rgba(9, 13, 11, 0.5);
+}
+
+.scan-price-item span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.62rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.scan-price-item strong {
+    display: block;
+    margin-top: 4px;
+    font-size: 1.05rem;
+    font-weight: 900;
+}
+
+.scan-price-item.ask strong { color: var(--amber); }
+.scan-price-item.new strong { color: var(--cyan); }
+.scan-price-item.percent strong { color: var(--hud); }
+
+.scan-roi-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    border: 1px solid var(--line);
+    background: rgba(9, 13, 11, 0.5);
+}
+
+.scan-roi-label {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.scan-roi-value {
+    font-size: 1.2rem;
+    font-weight: 900;
+}
+
+.scan-roi-value.high { color: var(--hud); }
+.scan-roi-value.medium { color: var(--amber); }
+.scan-roi-value.low { color: var(--danger); }
+
+.scan-verdict-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.scan-verdict {
+    padding: 5px 10px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid;
+}
+
+.scan-verdict.go { border-color: var(--hud); color: var(--hud); background: rgba(66, 245, 167, 0.08); }
+.scan-verdict.strong-go { border-color: #3ff08e; color: #3ff08e; background: rgba(63, 240, 142, 0.12); }
+.scan-verdict.possible { border-color: var(--amber); color: var(--amber); background: rgba(255, 184, 74, 0.08); }
+.scan-verdict.no-go { border-color: var(--danger); color: var(--danger); background: rgba(255, 77, 90, 0.08); }
+
+.scan-card-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+}
+
+.scan-card-actions button {
+    flex: 1;
+    height: 34px;
+    font-size: 0.72rem;
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid;
+    background: transparent;
+}
+
+.scan-card-actions .btn-discard {
+    border-color: rgba(255, 77, 90, 0.4);
+    color: var(--danger);
+}
+
+.scan-card-actions .btn-discard:hover {
+    background: rgba(255, 77, 90, 0.1);
+}
+
+.scan-card-actions .btn-view {
+    border-color: rgba(85, 214, 255, 0.4);
+    color: var(--cyan);
+}
+
+.scan-card-actions .btn-view:hover {
+    background: rgba(85, 214, 255, 0.1);
+}
+
+.scan-card-actions .btn-undo {
+    border-color: rgba(66, 245, 167, 0.4);
+    color: var(--hud);
+}
+
+.scan-card-actions .btn-undo:hover {
+    background: rgba(66, 245, 167, 0.1);
+}
+
+.scan-card.discarded {
+    opacity: 0.5;
+    border-color: rgba(255, 77, 90, 0.3);
+}
+
+.scan-card.discarded .scan-card-title {
+    text-decoration: line-through;
+    color: var(--muted);
+}
+
+.scan-empty {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+}
+
+.scan-empty-icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.scan-empty h3 {
+    margin: 0 0 8px;
+    color: var(--ink);
+    font-size: 1.1rem;
+}
+
+.scan-empty p {
+    margin: 0;
+    font-size: 0.88rem;
+    line-height: 1.5;
+}
+
+.scan-load-more {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 10px;
+}
+
+.scan-load-more button {
+    padding: 10px 24px;
+    border: 1px solid rgba(66, 245, 167, 0.4);
+    color: var(--hud);
+    background: rgba(66, 245, 167, 0.05);
+    font-weight: 900;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.scan-load-more button:hover {
+    background: rgba(66, 245, 167, 0.12);
+}
+
+@media (max-width: 700px) {
+    .scan-grid {
+        grid-template-columns: 1fr;
+    }
+    .scan-filters {
+        flex-direction: column;
+    }
+    .scan-filters label {
+        min-width: 0;
+    }
+}
