@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flipping Income Chart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css?v=20260723-2">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+</head>
+<body>
+    <header class="top-header">
+        <nav class="header-nav" aria-label="Main menu">
+            <a class="header-link" href="/flip-tracker.html">Flip Tracker</a>
+            <a class="header-link active" href="/Flipping%20Income%20Chart/">Income Chart</a>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        <section class="hero">
+            <div>
+                <span class="eyebrow">Groundbnb resale operations</span>
+                <h1>Flipping Income Chart</h1>
+                <p>Profit, revenue, inventory, and sell-through performance from the separate flipping income sheet.</p>
+                <p class="source-status" id="source-status">Embedded Groundbnb export loaded</p>
+            </div>
+            <div class="source-note">
+                <span>Source</span>
+                <strong>Groundbnb Store Google Sheet</strong>
+            </div>
+        </section>
+
+        <section class="kpi-grid" aria-label="Income summary">
+            <article class="kpi kpi-primary" title="Gross profit on closed flips. Revenue minus cost basis and sale-side costs."><span>Gross Profit</span><strong id="total-profit">$0</strong></article>
+            <article class="kpi kpi-primary" title="Gross margin as a share of revenue. Gross profit divided by sales revenue."><span>Gross Margin</span><strong id="gross-margin">0%</strong></article>
+            <article class="kpi kpi-primary" title="Gross profit divided by paid cost basis for sold items. This is realized return on cost, not annualized."><span>Realized Return on Cost</span><strong id="realized-roi">0%</strong></article>
+            <article class="kpi kpi-go" title="30-day realized gross profit divided by average inventory cost basis over the same 30 days. Unit: percent per month."><span>Monthly Profit / Inventory</span><strong id="monthly-profit-inventory">0%</strong></article>
+            <article class="kpi kpi-primary" title="Total sales collected from sold items in the selected scope."><span>Sales Revenue</span><strong id="sales-revenue">$0</strong></article>
+            <article class="kpi kpi-primary" title="Count of active inventory items still on hand in the sheet."><span>Active Inventory</span><strong id="inventory-count">0</strong></article>
+            <article class="kpi kpi-primary" title="Cash currently tied up in active inventory cost basis."><span>Active Cost Basis</span><strong id="inventory-cost">$0</strong></article>
+            <article class="kpi kpi-info" title="Sold items with zero recorded purchase cost. Included in profit but excluded from return-on-capital math."><span>Free / Zero-Cost Sales</span><strong id="free-items">0</strong></article>
+            <article class="kpi kpi-info" title="Share of sold units that had zero recorded purchase cost."><span>Zero-Cost Share</span><strong id="free-items-share">0%</strong></article>
+        </section>
+
+        <section class="kpi-expander" aria-label="Additional income KPIs">
+            <details>
+                <summary>More KPIs</summary>
+                <div class="secondary-kpis">
+                    <article class="kpi kpi-go" title="Number of sold assets included in the selected scope."><span>Sold Units</span><strong id="sold-count">0</strong></article>
+                    <article class="kpi kpi-cyan" title="Average gross profit per sold item."><span>Average Profit</span><strong id="avg-profit">$0</strong></article>
+                    <article class="kpi kpi-cyan" title="Middle gross profit among sold items, reducing the impact of unusually large or small flips."><span>Median Profit</span><strong id="median-profit">$0</strong></article>
+                    <article class="kpi kpi-amber" title="Average number of days from purchase to sale."><span>Avg Days to Sell</span><strong id="avg-days">0</strong></article>
+                    <article class="kpi kpi-info" title="Middle value for days to sell, which reduces the impact of outliers."><span>Median Days to Sell</span><strong id="median-days">0</strong></article>
+                    <article class="kpi kpi-slate" title="Current asking value for tracked Groundbnb resale inventory. Excludes the Cadillac ELR and non-Groundbnb rows."><span>Active Asking Value</span><strong id="active-asking">$0</strong></article>
+                    <article class="kpi kpi-go" title="Current asking value minus the paid cost for the same tracked Groundbnb inventory rows. Excludes the Cadillac ELR and non-Groundbnb rows."><span>Unrealized Profit</span><strong id="unrealized-profit">$0</strong></article>
+                    <article class="kpi kpi-danger" title="Active inventory older than 45 days and worth reviewing for pricing or liquidation."><span>Aging Risk Units</span><strong id="aging-risk">0</strong></article>
+                    <article class="kpi kpi-cyan" title="Sold units divided by sold units plus active inventory."><span>Sell-Through</span><strong id="sell-through">0%</strong></article>
+                    <article class="kpi kpi-amber" title="Average markup on sold items."><span>Avg Markup</span><strong id="avg-markup">0%</strong></article>
+                    <article class="kpi kpi-primary" title="Simple linear annualization of completed paid flips at their observed holding-period pace. It assumes that pace repeats, does not compound, and is not comparable to portfolio APY."><span>Annualized Flip Pace (Not APY)</span><strong id="annualized-return">0%</strong></article>
+                    <article class="kpi kpi-info" title="Gross profit divided by the number of days the item was held."><span>Profit per Day Held</span><strong id="profit-per-day">$0.00</strong></article>
+                    <article class="kpi kpi-slate" title="Average time active inventory has been on hand. Displays months when the average exceeds 60 days."><span>Inventory Age</span><strong id="days-in-inventory">0 days</strong></article>
+                    <article class="kpi kpi-danger" title="Active inventory held for at least 365 days."><span>Inventory 1 Year+</span><strong id="inventory-one-year">0</strong></article>
+                    <article class="kpi kpi-go" title="Cost basis rotations per period. Roughly how many times inventory turns over in a year."><span>Inventory Turnover</span><strong id="inventory-turnover">0x</strong></article>
+                    <article class="kpi kpi-info" title="Marketplace ad count reported in the KPI export sheet."><span>Marketplace Ads</span><strong id="marketplace-ads">0</strong></article>
+                    <article class="kpi kpi-danger" title="The difference between marketplace ads and tracked sheet inventory. If this is positive, ads exceed tracked rows."><span>Ad / Sheet Gap</span><strong id="ad-gap">0</strong></article>
+
+                    <article class="kpi kpi-primary" title="Average paid price as a share of seller asking across all sold and active items with a recorded asking price."><span>Average Paid % of Seller Asking</span><strong id="avg-paid-percent-seller-asking">0%</strong></article>
+                </div>
+            </details>
+        </section>
+
+        <section class="panel chart-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">Monthly activity</span>
+                    <h2>Inventory value, cash, total equity, avg item value, and 30-day inventory yield</h2>
+                </div>
+                <div class="filters">
+                    <div class="multi-filter" id="year-filter-wrap">
+                        <span>Year</span>
+                        <button id="year-filter-button" class="multi-filter-button" type="button" aria-haspopup="true" aria-expanded="false">
+                            <span id="year-filter-label">All years</span>
+                            <span class="multi-filter-caret">▾</span>
+                        </button>
+                        <div id="year-filter-panel" class="multi-filter-panel" hidden></div>
+                    </div>
+                    <div class="multi-filter" id="category-filter-wrap">
+                        <span>Category</span>
+                        <button id="category-filter-button" class="multi-filter-button" type="button" aria-haspopup="true" aria-expanded="false">
+                            <span id="category-filter-label">All categories</span>
+                            <span class="multi-filter-caret">▾</span>
+                        </button>
+                        <div id="category-filter-panel" class="multi-filter-panel" hidden></div>
+                    </div>
+                    <label class="range-filter">
+                        <span>Paid min/max</span>
+                        <div class="range-inputs">
+                            <input id="paid-min-filter" type="number" inputmode="decimal" placeholder="Min paid" aria-label="Minimum price paid">
+                            <input id="paid-max-filter" type="number" inputmode="decimal" placeholder="Max paid" aria-label="Maximum price paid">
+                        </div>
+                    </label>
+                    <label class="range-filter">
+                        <span>Sold min/max</span>
+                        <div class="range-inputs">
+                            <input id="sold-min-filter" type="number" inputmode="decimal" placeholder="Min sold" aria-label="Minimum sale price">
+                            <input id="sold-max-filter" type="number" inputmode="decimal" placeholder="Max sold" aria-label="Maximum sale price">
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div id="trace-controls" class="trace-controls" aria-label="Chart trace selectors"></div>
+            <div id="income-chart" class="plotly-chart" aria-label="Inventory value and cash chart"></div>
+        </section>
+
+        <section class="split-grid">
+            <article class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">Category mix</span>
+                        <h2>Profit per day by type</h2>
+                    </div>
+                </div>
+                <div id="type-bars" class="plotly-chart" style="min-height: 340px;"></div>
+            </article>
+
+            <article class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">Open capital</span>
+                        <h2>Current inventory</h2>
+                    </div>
+                </div>
+                <div id="inventory-preview" class="inventory-list"></div>
+                <details class="list-expander" id="inventory-expander">
+                    <summary><span id="inventory-more-label">More</span></summary>
+                    <div id="inventory-list" class="inventory-list"></div>
+                </details>
+            </article>
+
+            <article class="panel">
+                <div class="panel-heading">
+                    <div>
+                        <span class="eyebrow">Reconciliation</span>
+                        <h2>Active rows without listing URLs</h2>
+                    </div>
+                    <strong id="reconciliation-count">0</strong>
+                </div>
+                <div id="reconciliation-list" class="inventory-list"></div>
+            </article>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">Latest closed flips</span>
+                    <h2>Recent sales</h2>
+                </div>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date Sold</th>
+                            <th>Item</th>
+                            <th>Type</th>
+                            <th>Paid</th>
+                            <th>Sale</th>
+                            <th>Profit</th>
+                            <th title="Pulled from the Sales Ledger tab in the Groundbnb Store Google Sheet">Days to Sell</th>
+                        </tr>
+                    </thead>
+                    <tbody id="recent-sales"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">Recent buys</span>
+                    <h2>Recent purchases</h2>
+                </div>
+            </div>
+            <div id="recent-purchases" class="inventory-list"></div>
+        </section>
+    </main>
+
+    <script src="data.js?v=20260717-1"></script>
+    <script src="script.js?v=20260723-4"></script>
+</body>
+</html>

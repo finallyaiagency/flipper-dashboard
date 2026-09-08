@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Tracker Cockpit</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="flip-tracker.css?v=20260530-1">
+</head>
+<body>
+    <header class="top-header">
+        <nav class="header-nav" aria-label="Main menu">
+            <a class="header-link active" href="/flip-tracker.html">Flip Tracker</a>
+            <a class="header-link" href="/Flipping%20Income%20Chart/">Income Chart</a>
+        </nav>
+    </header>
+
+    <main class="cockpit-shell">
+        <section class="mission-bar" aria-label="Tracker summary">
+            <div class="mission-title">
+                <span>FB Marketplace</span>
+                <h1>Flip Tracker Cockpit</h1>
+            </div>
+            <div class="mission-kpis" aria-label="Summary KPIs">
+                <div><span>Visible</span><strong id="visible-count">0</strong></div>
+                <div><span>Records</span><strong id="total-count">0</strong></div>
+                <div><span>GO Rate</span><strong id="go-rate">0%</strong></div>
+                <div><span>Avg ROI</span><strong id="avg-roi">0%</strong></div>
+            </div>
+        </section>
+
+        <section class="private-cockpit" aria-label="Private flipping cockpit intake">
+            <div class="cockpit-hero-card">
+                <div>
+                    <span class="eyebrow">Private test page</span>
+                    <h2>Flipping Cockpit Intake</h2>
+                    <p>Upload a screenshot, photo, or saved-ad PDF; enter quick comps; then use the output as a draft deal evaluation before writing anything to the Groundbnb sheet.</p>
+                </div>
+                <div class="privacy-pill">Private · not linked from Groundbnb public page</div>
+            </div>
+
+            <div class="cockpit-tool-grid">
+                <article class="cockpit-card upload-card">
+                    <div class="card-heading">
+                        <span>Capture</span>
+                        <strong>Screenshot / Photo / PDF</strong>
+                    </div>
+                    <label class="upload-drop" for="cockpit-file-input">
+                        <input id="cockpit-file-input" type="file" accept="image/*,.pdf">
+                        <span id="cockpit-file-label">Tap to upload a Facebook screenshot, item photo, or saved-ads PDF</span>
+                        <img id="cockpit-preview" alt="Uploaded item preview" hidden>
+                    </label>
+                    <p class="helper-copy">Next step: phone share shortcut can POST screenshots here so you do not have to open ChatGPT and start a new chat.</p>
+                </article>
+
+                <article class="cockpit-card evaluation-card">
+                    <div class="card-heading">
+                        <span>Deal Inputs</span>
+                        <strong>Comp-based pricing</strong>
+                    </div>
+                    <div class="input-grid compact">
+                        <label><span>Item / OCR note</span><input id="cockpit-item-name" value="Portable power station"></label>
+                        <label><span>Category</span><input id="cockpit-category" value="Power Station"></label>
+                        <label><span>Seller ask</span><input id="cockpit-seller-ask" type="number" inputmode="decimal" value="200"></label>
+                        <label><span>New retail</span><input id="cockpit-retail" type="number" inputmode="decimal" value="350"></label>
+                        <label><span>Used comp low</span><input id="cockpit-used-low" type="number" inputmode="decimal" value="220"></label>
+                        <label><span>Used comp median</span><input id="cockpit-used-median" type="number" inputmode="decimal" value="275"></label>
+                        <label><span>Used comp high</span><input id="cockpit-used-high" type="number" inputmode="decimal" value="325"></label>
+                        <label><span>Condition 1-10</span><input id="cockpit-condition" type="number" inputmode="decimal" min="1" max="10" value="8"></label>
+                        <label><span>Storage burden</span><select id="cockpit-storage"><option>Low</option><option selected>Medium</option><option>High</option><option>Very High</option></select></label>
+                    </div>
+                    <div class="cockpit-actions">
+                        <button id="use-selected-record" class="reset-btn" type="button">Use Selected Ad</button>
+                        <button id="copy-cockpit-prompt" class="nav-btn" type="button">Copy AI Prompt</button>
+                    </div>
+                </article>
+
+                <article class="cockpit-card result-card">
+                    <div class="card-heading">
+                        <span>Recommendation</span>
+                        <strong id="cockpit-recommendation">-</strong>
+                    </div>
+                    <div class="result-grid">
+                        <div><span>Max pay</span><strong id="cockpit-max-pay">$0</strong></div>
+                        <div><span>Best ask</span><strong id="cockpit-best-ask">$0</strong></div>
+                        <div><span>Accept floor</span><strong id="cockpit-accept-floor">$0</strong></div>
+                        <div><span>Expected profit</span><strong id="cockpit-profit">$0</strong></div>
+                    </div>
+                    <div class="result-meta">
+                        <span id="cockpit-roi">ROI -</span>
+                        <span id="cockpit-confidence">Confidence -</span>
+                        <span id="cockpit-personal-fit">Personal fit -</span>
+                    </div>
+                    <ul id="cockpit-risk-notes" class="risk-list"></ul>
+                </article>
+            </div>
+
+            <div class="cleanup-grid" aria-label="Spreadsheet cleanup recommendations">
+                <article class="cleanup-card"><span>1</span><strong>Exclude non-flips</strong><p>Potential profit should ignore blank-cost, vehicle/unload, personal, friends/family, donation, and dispose rows.</p></article>
+                <article class="cleanup-card"><span>2</span><strong>Add Asset Purpose</strong><p>Use Flip / Resale, Possible Personal Use, Personal Use, Unload / Not a Flip, Bundle Only, Friends / Family, Donation / Dispose.</p></article>
+                <article class="cleanup-card"><span>3</span><strong>Fix personal-use defaults</strong><p>Power/solar can be camping or emergency backup. Kayaks, SUPs, and paddles default to resale only. Vehicles default to unload.</p></article>
+                <article class="cleanup-card"><span>4</span><strong>Add deal fields</strong><p>Track suggested max pay, best asking price, lowest acceptable sale price, quick-sale price, storage burden, and cash recovery priority.</p></article>
+            </div>
+        </section>
+
+        <section class="control-deck" aria-label="Filters and sorting">
+            <label>
+                <span>Search</span>
+                <input id="search-input" type="search" placeholder="title, brand, seller, keyword">
+            </label>
+            <label>
+                <span>Location</span>
+                <select id="location-filter"></select>
+            </label>
+            <label>
+                <span>Verdict</span>
+                <select id="verdict-filter"></select>
+            </label>
+            <label>
+                <span>KPI Filter</span>
+                <select id="kpi-filter">
+                    <option value="all">All records</option>
+                    <option value="go">GO only</option>
+                    <option value="roi60">ROI 60%+</option>
+                    <option value="profit50">Profit $50+</option>
+                    <option value="ask100">Ask $100 or less</option>
+                    <option value="caution">Caution / no-go</option>
+                </select>
+            </label>
+            <label>
+                <span>Sort</span>
+                <select id="sort-select">
+                    <option value="roi-desc">ROI high to low</option>
+                    <option value="profit-desc">Profit high to low</option>
+                    <option value="ask-asc">Ask low to high</option>
+                    <option value="ask-desc">Ask high to low</option>
+                    <option value="maxbuy-asc">Max buy low to high</option>
+                    <option value="days-asc">Fastest sell time</option>
+                    <option value="location-asc">Location A-Z</option>
+                    <option value="title-asc">Title A-Z</option>
+                </select>
+            </label>
+            <button class="reset-btn" id="reset-filters" type="button">Reset</button>
+        </section>
+
+        <section class="review-grid" aria-label="Record review">
+            <aside class="record-rail" aria-label="Filtered records">
+                <div class="rail-header">
+                    <span>Targets</span>
+                    <strong id="rail-count">0</strong>
+                </div>
+                <div id="record-list" class="record-list"></div>
+            </aside>
+
+            <article class="record-panel" aria-live="polite">
+                <div class="record-toolbar">
+                    <button id="prev-record" class="nav-btn" type="button" aria-label="Previous record">Prev</button>
+                    <div>
+                        <span id="record-position" class="record-position">0 / 0</span>
+                        <h2 id="record-title">No records</h2>
+                        <div id="verdict-indicator" class="verdict-indicator">Verdict: -</div>
+                    </div>
+                    <button id="next-record" class="nav-btn" type="button" aria-label="Next record">Next</button>
+                </div>
+
+                <section class="price-scale-panel" aria-label="Price KPI scale">
+                    <div class="price-scale-header">
+                        <h3>Price Scale</h3>
+                        <div class="scale-max-control">
+                            <label for="scale-max-select">Scale</label>
+                            <select id="scale-max-select">
+                                <option value="auto" selected>Auto</option>
+                                <option value="100">100</option>
+                                <option value="500">500</option>
+                                <option value="1000">1000</option>
+                                <option value="2000">2000</option>
+                                <option value="5000">5000</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="price-scale-wrap" id="price-scale-wrap">
+                        <div class="zone buy-zone" id="buy-zone"></div>
+                        <div class="zone caution-zone" id="caution-zone"></div>
+                        <div class="zone sell-zone" id="sell-zone"></div>
+                        <div class="range-band buy-band" id="buy-band"></div>
+                        <div class="range-band sell-band" id="sell-band"></div>
+                        <div id="price-guides" class="price-guides"></div>
+                        <div class="price-axis"></div>
+                        <div id="price-markers" class="price-markers"></div>
+                    </div>
+                    <div id="price-scale-legend" class="price-scale-legend"></div>
+                </section>
+
+                <div class="hud-strip" aria-label="Primary metrics">
+                    <div class="gauge">
+                        <div class="gauge-face" id="roi-gauge"><strong id="roi-value">0%</strong></div>
+                        <span>ROI</span>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-face" id="profit-gauge"><strong id="profit-value">$0</strong></div>
+                        <span>Profit</span>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-face" id="buy-gauge"><strong id="buy-value">$0</strong></div>
+                        <span>Max Buy</span>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-face" id="confidence-gauge"><strong id="confidence-value">-</strong></div>
+                        <span>Confidence</span>
+                    </div>
+                </div>
+
+                <div class="quick-read" aria-label="Quick record facts">
+                    <div><span>Verdict</span><strong id="quick-verdict">-</strong></div>
+                    <div><span>Ask</span><strong id="quick-ask">-</strong></div>
+                    <div><span>Location</span><strong id="quick-location">-</strong></div>
+                    <div><span>Sell Time</span><strong id="quick-days">-</strong></div>
+                </div>
+
+                <div id="accordion-zone" class="accordion-zone"></div>
+            </article>
+        </section>
+    </main>
+
+    <script src="flip-tracker-data.js?v=20260530-1"></script>
+    <script src="flip-tracker.js?v=20260530-1"></script>
+</body>
+</html>
