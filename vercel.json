@@ -4,6 +4,10 @@
     {
       "source": "/",
       "destination": "/flip-tracker"
+    },
+    {
+      "source": "/sales-by-month",
+      "destination": "/sales-by-month.html"
     }
   ]
 }

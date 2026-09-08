@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Per Month by Year</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --ink: #f4f0df;
+            --muted: rgba(244, 240, 223, 0.68);
+            --panel: rgba(16, 20, 17, 0.88);
+            --line: rgba(244, 240, 223, 0.15);
+            --hud: #42f5a7;
+            --amber: #ffb84a;
+            --cyan: #55d6ff;
+            --runway: #0b0e0d;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: "Outfit", system-ui, sans-serif;
+            background:
+                linear-gradient(90deg, rgba(66, 245, 167, 0.08) 1px, transparent 1px) 0 0 / 46px 46px,
+                linear-gradient(0deg, rgba(255, 184, 74, 0.06) 1px, transparent 1px) 0 0 / 46px 46px,
+                radial-gradient(circle at 16% 12%, rgba(255, 184, 74, 0.16), transparent 26%),
+                radial-gradient(circle at 92% 6%, rgba(85, 214, 255, 0.14), transparent 24%),
+                linear-gradient(135deg, #090d0b 0%, #161915 48%, #0d0f0e 100%);
+        }
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid var(--line);
+            background: rgba(9, 13, 11, 0.78);
+            backdrop-filter: blur(14px);
+        }
+        .header-nav {
+            width: min(1480px, calc(100% - 28px));
+            min-height: 58px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .header-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .header-link:hover, .header-link.active { color: var(--hud); }
+        .page-shell {
+            width: min(1480px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 24px 0 44px;
+        }
+        h1 {
+            margin: 0 0 8px;
+            font-size: clamp(1.5rem, 3vw, 2.5rem);
+            font-weight: 900;
+        }
+        .subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 20px;
+        }
+        .chart-panel {
+            border: 1px solid var(--line);
+            background: var(--panel);
+            padding: 18px;
+        }
+        .chart-panel h2 {
+            margin: 0 0 14px;
+            font-size: 1.2rem;
+            font-weight: 900;
+        }
+        #sales-chart {
+            width: 100%;
+            min-height: 500px;
+        }
+        .toggle-row {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .toggle-row label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .toggle-row input[type="checkbox"] {
+            accent-color: var(--hud);
+            width: 18px;
+            height: 18px;
+        }
+        @media (max-width: 720px) {
+            .header-nav { justify-content: center; gap: 12px; }
+            #sales-chart { min-height: 400px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <nav class="header-nav" aria-label="Main menu">
+            <a class="header-link" href="/flip-tracker.html">Flip Tracker</a>
+            <a class="header-link" href="/Flipping%20Income%20Chart/">Income Chart</a>
+            <a class="header-link active" href="/sales-by-month.html">Sales</a>
+        </nav>
+    </header>
+    <main class="page-shell">
+        <h1>Sales Per Month</h1>
+        <p class="subtitle">Comparison by year — units sold per month</p>
+        
+        <section class="chart-panel">
+            <div class="toggle-row">
+                <label><input type="checkbox" id="toggle-2024" checked> <span style="color:#ffb84a;">2024</span></label>
+                <label><input type="checkbox" id="toggle-2025" checked> <span style="color:#55d6ff;">2025</span></label>
+                <label><input type="checkbox" id="toggle-2026" checked> <span style="color:#42f5a7;">2026</span></label>
+            </div>
+            <div id="sales-chart"></div>
+        </section>
+    </main>
+
+    <script>
+        const monthlyData = {
+            '2024-06': { count: 8, revenue: 1210 },
+            '2024-07': { count: 7, revenue: 785 },
+            '2024-08': { count: 4, revenue: 615 },
+            '2024-09': { count: 3, revenue: 380 },
+            '2024-12': { count: 2, revenue: 250 },
+            '2025-01': { count: 2, revenue: 515 },
+            '2025-03': { count: 4, revenue: 530 },
+            '2025-04': { count: 4, revenue: 445 },
+            '2025-05': { count: 5, revenue: 480 },
+            '2025-06': { count: 3, revenue: 685 },
+            '2025-07': { count: 6, revenue: 645 },
+            '2025-08': { count: 4, revenue: 510 },
+            '2025-09': { count: 5, revenue: 520 },
+            '2025-10': { count: 3, revenue: 260 },
+            '2025-12': { count: 3, revenue: 140 },
+            '2026-01': { count: 9, revenue: 1720 },
+            '2026-02': { count: 1, revenue: 50 },
+            '2026-03': { count: 8, revenue: 1186 },
+            '2026-04': { count: 8, revenue: 1315 },
+            '2026-05': { count: 22, revenue: 4280 },
+            '2026-06': { count: 13, revenue: 2635 },
+            '2026-07': { count: 3, revenue: 550 },
+            '2026-08': { count: 5, revenue: 855 }
+        };
+
+        const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        const years = ['2024', '2025', '2026'];
+        const colors = { '2024': '#ffb84a', '2025': '#55d6ff', '2026': '#42f5a7' };
+
+        function buildTraces() {
+            const traces = [];
+            years.forEach(year => {
+                const counts = [];
+                for (let m = 1; m <= 12; m++) {
+                    const key = `${year}-${String(m).padStart(2, '0')}`;
+                    counts.push(monthlyData[key]?.count || 0);
+                }
+                traces.push({
+                    name: year,
+                    type: 'bar',
+                    x: months,
+                    y: counts,
+                    marker: { color: colors[year] },
+                    text: counts.map(c => c > 0 ? `${c}` : ''),
+                    textposition: 'outside',
+                    hovertemplate: `<b>${year}</b><br>%{x}: %{y} units<extra></extra>`
+                });
+            });
+            return traces;
+        }
+
+        const layout = {
+            title: {
+                text: 'Units Sold Per Month',
+                font: { color: '#f4f0df', size: 18, family: 'Outfit, sans-serif' }
+            },
+            xaxis: {
+                title: { text: 'Month', font: { color: 'rgba(244,240,223,0.68)' } },
+                tickfont: { color: 'rgba(244,240,223,0.68)' },
+                gridcolor: 'rgba(244,240,223,0.08)'
+            },
+            yaxis: {
+                title: { text: 'Units Sold', font: { color: 'rgba(244,240,223,0.68)' } },
+                tickfont: { color: 'rgba(244,240,223,0.68)' },
+                gridcolor: 'rgba(244,240,223,0.08)',
+                dtick: 2
+            },
+            legend: {
+                font: { color: '#f4f0df' },
+                bgcolor: 'transparent'
+            },
+            plot_bgcolor: 'rgba(16,20,17,0.5)',
+            paper_bgcolor: 'transparent',
+            barmode: 'group',
+            bargap: 0.15,
+            bargroupgap: 0.1,
+            margin: { t: 50, b: 50, l: 50, r: 20 }
+        };
+
+        const config = { responsive: true, displayModeBar: false };
+
+        function render() {
+            const show2024 = document.getElementById('toggle-2024').checked;
+            const show2025 = document.getElementById('toggle-2025').checked;
+            const show2026 = document.getElementById('toggle-2026').checked;
+            
+            const traces = buildTraces().filter(t => {
+                if (t.name === '2024') return show2024;
+                if (t.name === '2025') return show2025;
+                if (t.name === '2026') return show2026;
+                return true;
+            });
+            
+            Plotly.newPlot('sales-chart', traces, layout, config);
+        }
+
+        document.getElementById('toggle-2024').addEventListener('change', render);
+        document.getElementById('toggle-2025').addEventListener('change', render);
+        document.getElementById('toggle-2026').addEventListener('change', render);
+
+        render();
+    </script>
+</body>
+</html>
