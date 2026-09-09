@@ -1,8 +1,8 @@
 {
   "scanId": "craigslist-AM-20260909",
-  "timestamp": "2026-09-09T07:00:00-04:00",
+  "timestamp": "2026-09-09T12:00:00-04:00",
   "source": "craigslist",
-  "listingCount": 7,
+  "listingCount": 9,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -102,11 +102,41 @@
       "daysToSell": 7,
       "source": "OfferUp",
       "discarded": 0
+    },
+    {
+      "title": "Intex Explorer K2 Inflatable Kayak - NEW",
+      "category": "Kayak",
+      "askingPrice": 80,
+      "newPrice": 160,
+      "percentOfNew": 50,
+      "roi": 100,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/gastonia-intek-k2-kayak/gKTmPdg8ggYjPLACejqgWx",
+      "imageUrl": "https://images.craigslist.org/00z0z_6IbJGYPzo9_0hT0CI_600x450.jpg",
+      "location": "Gastonia NC",
+      "daysToSell": 14,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Emotion Guster Kayak 10ft Sit-In with Paddle",
+      "category": "Kayak",
+      "askingPrice": 100,
+      "newPrice": 275,
+      "percentOfNew": 36,
+      "roi": 150,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/mount-mourne-emotion-guster-kayak/hwMm7pb11eMbVBAD7X14mh",
+      "imageUrl": "https://images.craigslist.org/00s0s_3qtwrsHjpOU_0CI0t2_600x450.jpg",
+      "location": "Mount Mourne NC",
+      "daysToSell": 7,
+      "source": "Craigslist",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 0,
+    "added": 2,
     "updated": 0,
-    "total": 7
+    "total": 9
   }
 }
