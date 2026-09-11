@@ -1,8 +1,8 @@
 {
-  "scanId": "craigslist-AM-20260911",
-  "timestamp": "2026-09-11T07:00:00-04:00",
-  "source": "craigslist",
-  "listingCount": 9,
+  "scanId": "lifestyle-asset-scan-20260911-0600",
+  "timestamp": "2026-09-11T06:00:00-04:00",
+  "source": "lifestyle-asset-scan",
+  "listingCount": 10,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -132,11 +132,26 @@
       "daysToSell": 7,
       "source": "Craigslist",
       "discarded": 0
+    },
+    {
+      "title": "1997 Country Coach Allure 40-foot Diesel Pusher",
+      "category": "Other",
+      "askingPrice": 25000,
+      "newPrice": 0,
+      "percentOfNew": 0,
+      "roi": 30,
+      "verdict": "GO",
+      "url": "https://www.facebook.com/marketplace/item/37237055535939758/",
+      "imageUrl": "",
+      "location": "Clover, SC",
+      "daysToSell": 45,
+      "source": "Facebook Marketplace",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 0,
+    "added": 1,
     "updated": 0,
-    "total": 9
+    "total": 10
   }
 }
