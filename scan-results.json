@@ -104,17 +104,17 @@
       "discarded": 0
     },
     {
-      "title": "Intex Explorer K2 Inflatable Kayak - NEW",
+      "title": "Intek K2 Kayak - NEW with all accessories",
       "category": "Kayak",
       "askingPrice": 80,
-      "newPrice": 160,
-      "percentOfNew": 50,
-      "roi": 100,
+      "newPrice": 320,
+      "percentOfNew": 25,
+      "roi": 114,
       "verdict": "GO",
       "url": "https://www.craigslist.org/view/d/gastonia-intek-k2-kayak/gKTmPdg8ggYjPLACejqgWx",
-      "imageUrl": "https://images.craigslist.org/00z0z_6IbJGYPzo9_0hT0CI_600x450.jpg",
+      "imageUrl": "",
       "location": "Gastonia NC",
-      "daysToSell": 14,
+      "daysToSell": 5,
       "source": "Craigslist",
       "discarded": 0
     },
@@ -151,7 +151,7 @@
   ],
   "_mergeStats": {
     "added": 0,
-    "updated": 0,
+    "updated": 1,
     "total": 10
   }
 }
