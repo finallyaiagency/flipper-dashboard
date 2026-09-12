@@ -1,8 +1,8 @@
 {
-  "scanId": "craigslist-AM-20260912",
-  "timestamp": "2026-09-12T07:00:00-04:00",
-  "source": "craigslist",
-  "listingCount": 10,
+  "scanId": "lifestyle-scan-20260912",
+  "timestamp": "2026-09-12T10:00:00-04:00",
+  "source": "multi-pipeline",
+  "listingCount": 13,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -147,11 +147,56 @@
       "daysToSell": 45,
       "source": "Facebook Marketplace",
       "discarded": 0
+    },
+    {
+      "title": "1999 Monaco Dynasty Diesel Pusher",
+      "category": "Diesel Pusher",
+      "askingPrice": 29800,
+      "newPrice": 85000,
+      "percentOfNew": 35,
+      "roi": 40,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/campobello-monaco-dynasty/sfbYaENHYnxQNCT2VYBrBF",
+      "imageUrl": "",
+      "location": "Campobello, SC",
+      "daysToSell": 14,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "2000 National Tradewinds 7370",
+      "category": "Diesel Pusher",
+      "askingPrice": 29950,
+      "newPrice": 70000,
+      "percentOfNew": 43,
+      "roi": 35,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/asheville-national-tradewinds-7370/a9LKZrToCCxvQh15ywwHWt",
+      "imageUrl": "",
+      "location": "Asheville, NC",
+      "daysToSell": 21,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "2003 Newmar Kountry Star",
+      "category": "Diesel Pusher",
+      "askingPrice": 39000,
+      "newPrice": 95000,
+      "percentOfNew": 41,
+      "roi": 30,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/townsend-2003-newmar-kountry-star/c4xUcXunp2dbEVW5TGrEqT",
+      "imageUrl": "",
+      "location": "Townsend, TN",
+      "daysToSell": 21,
+      "source": "Craigslist",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 0,
-    "updated": 1,
-    "total": 10
+    "added": 3,
+    "updated": 0,
+    "total": 13
   }
 }
