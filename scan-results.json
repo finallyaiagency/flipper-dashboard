@@ -1,7 +1,7 @@
 {
-  "scanId": "lifestyle-asset-scan-20260911-0600",
-  "timestamp": "2026-09-11T06:00:00-04:00",
-  "source": "lifestyle-asset-scan",
+  "scanId": "craigslist-AM-20260912",
+  "timestamp": "2026-09-12T07:00:00-04:00",
+  "source": "craigslist",
   "listingCount": 10,
   "listings": [
     {
@@ -150,7 +150,7 @@
     }
   ],
   "_mergeStats": {
-    "added": 1,
+    "added": 0,
     "updated": 0,
     "total": 10
   }
