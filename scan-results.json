@@ -1,7 +1,7 @@
 {
-  "scanId": "lifestyle-scan-20260912",
-  "timestamp": "2026-09-12T10:00:00-04:00",
-  "source": "multi-pipeline",
+  "scanId": "offerup-AM-20260914",
+  "timestamp": "2026-09-14T07:41:41Z",
+  "source": "offerup",
   "listingCount": 13,
   "listings": [
     {
@@ -195,7 +195,7 @@
     }
   ],
   "_mergeStats": {
-    "added": 3,
+    "added": 0,
     "updated": 0,
     "total": 13
   }
