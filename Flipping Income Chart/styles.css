@@ -499,6 +499,17 @@ select:focus {
     min-height: 640px;
 }
 
+.compact-chart {
+    min-height: 420px;
+}
+
+.panel-note {
+    margin: -4px 0 10px;
+    color: var(--muted);
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
 .split-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);

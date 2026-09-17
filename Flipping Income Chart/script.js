@@ -387,6 +387,7 @@
         renderKpis(soldRows, inventoryRows, daily);
         renderPlotly(daily);
         renderTypeBars(soldRows);
+        renderCapitalEfficiency(soldRows);
         renderInventory(inventoryRows);
         renderUnlinkedInventory(inventoryRows);
         renderRecentSales(soldRows);
@@ -759,13 +760,17 @@
 
     function lineTrace(source, key, label, axis, format) {
         const hoverValue = format === "percent" ? "%{y:.1%}" : "$%{y:,.2f}";
+        const isPrimaryArea = key === "inventoryValue";
         return {
             x: source.map((row) => row.date),
             y: source.map((row) => row[key]),
+            type: "scatter",
             mode: "lines",
             name: label,
             yaxis: axis,
-            line: { width: key.endsWith("MA") ? 2 : 3 },
+            line: { width: key.endsWith("MA") ? 2 : 3, shape: "spline", smoothing: 1.15, color: key.endsWith("MA") ? undefined : undefined },
+            fill: isPrimaryArea ? "tozeroy" : undefined,
+            fillcolor: isPrimaryArea ? "rgba(66,245,167,0.18)" : undefined,
             hovertemplate: `<b>%{x|%Y-%m-%d}</b><br>${label}: ${hoverValue}<extra></extra>`,
         };
     }
@@ -833,6 +838,54 @@
             font: { family: "Outfit, sans-serif", color: "#f4f0df" },
             margin: { l: 120, r: 24, t: 56, b: 40 },
             xaxis: { title: "Profit per day ($)", gridcolor: "rgba(244,240,223,0.10)", zerolinecolor: "rgba(244,240,223,0.18)" },
+            yaxis: { automargin: true, categoryorder: "array", categoryarray: sorted.map((row) => row.type), autorange: "reversed", gridcolor: "rgba(244,240,223,0.06)" },
+            showlegend: false,
+        }, { responsive: true, displaylogo: false });
+    }
+
+    function renderCapitalEfficiency(records) {
+        const chart = document.getElementById("capital-efficiency");
+        if (!chart) return;
+        if (!window.Plotly) {
+            chart.innerHTML = "<p>Chart library did not load.</p>";
+            return;
+        }
+        const byType = new Map();
+        records.forEach((row) => {
+            const cost = toNumber(row[COLS.buyPrice]);
+            const profit = toNumber(row[COLS.profit]);
+            const days = toNumber(row[COLS.daysToSell]);
+            if (cost <= 0 || days <= 0 || !Number.isFinite(profit)) return;
+            const type = row[COLS.type] || "Other";
+            const efficiency = (profit / (cost * days)) * 1000 * 30;
+            const bucket = byType.get(type) || [];
+            bucket.push(efficiency);
+            byType.set(type, bucket);
+        });
+        const sorted = Array.from(byType.entries())
+            .map(([type, values]) => ({ type, median: median(values), average: mean(values) || 0, count: values.length }))
+            .sort((a, b) => b.median - a.median);
+        if (!sorted.length) {
+            chart.innerHTML = "<p>No paid completed flips with a recorded holding period match the selected filters.</p>";
+            return;
+        }
+        Plotly.react("capital-efficiency", [{
+            type: "bar",
+            orientation: "h",
+            y: sorted.map((row) => row.type),
+            x: sorted.map((row) => row.median),
+            customdata: sorted.map((row) => [row.average, row.count]),
+            marker: {
+                color: sorted.map((_, index) => index === 0 ? "#42f5a7" : "#55d6ff"),
+                line: { color: "rgba(244,240,223,0.28)", width: 1 },
+            },
+            hovertemplate: "<b>%{y}</b><br>Median: $%{x:,.0f} / $1,000 / 30 days<br>Average: $%{customdata[0]:,.0f}<br>Completed flips: %{customdata[1]}<extra></extra>",
+        }], {
+            paper_bgcolor: "rgba(0,0,0,0)",
+            plot_bgcolor: "rgba(0,0,0,0)",
+            font: { family: "Outfit, sans-serif", color: "#f4f0df" },
+            margin: { l: 120, r: 28, t: 18, b: 48 },
+            xaxis: { title: "Median 30-day profit per $1,000", tickprefix: "$", separatethousands: true, gridcolor: "rgba(244,240,223,0.10)", zerolinecolor: "rgba(244,240,223,0.18)" },
             yaxis: { automargin: true, categoryorder: "array", categoryarray: sorted.map((row) => row.type), autorange: "reversed", gridcolor: "rgba(244,240,223,0.06)" },
             showlegend: false,
         }, { responsive: true, displaylogo: false });
