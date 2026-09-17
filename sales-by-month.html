@@ -106,9 +106,24 @@
             width: 18px;
             height: 18px;
         }
+        .metric-row {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin: 0 0 10px;
+            flex-wrap: wrap;
+            color: var(--muted);
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+        .metric-row label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+        .metric-row input { accent-color: var(--hud); }
+        .metric-label { color: var(--ink); text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.72rem; }
+        .sales-source { margin-left: auto; color: rgba(244, 240, 223, 0.5); font-size: 0.75rem; font-weight: 600; }
         @media (max-width: 720px) {
             .header-nav { justify-content: center; gap: 12px; }
             #sales-chart { min-height: 400px; }
+            .sales-source { width: 100%; margin-left: 0; }
         }
     </style>
 </head>
@@ -130,12 +145,19 @@
                 <label><input type="checkbox" id="toggle-2025" checked> <span style="color:#55d6ff;">2025</span></label>
                 <label><input type="checkbox" id="toggle-2026" checked> <span style="color:#42f5a7;">2026</span></label>
             </div>
+            <div class="metric-row" role="group" aria-label="Sales chart metric">
+                <span class="metric-label">Show:</span>
+                <label><input type="radio" name="metric" value="count" checked> Units sold</label>
+                <label><input type="radio" name="metric" value="revenue"> Revenue</label>
+                <label><input type="radio" name="metric" value="profit"> Gross profit</label>
+                <span id="sales-source" class="sales-source">Loading live sales data…</span>
+            </div>
             <div id="sales-chart"></div>
         </section>
     </main>
 
     <script>
-        const monthlyData = {
+        let monthlyData = {
             '2024-06': { count: 8, revenue: 1210 },
             '2024-07': { count: 7, revenue: 785 },
             '2024-08': { count: 4, revenue: 615 },
@@ -164,6 +186,53 @@
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const years = ['2024', '2025', '2026'];
         const colors = { '2024': '#ffb84a', '2025': '#55d6ff', '2026': '#42f5a7' };
+        const SHEET_ID = '12TELzT2bzIxdry3pyLvSv3hdWJpkdvGC25aSlvsBq94';
+        let metric = 'count';
+        const metricConfig = {
+            count: { label: 'Units Sold Per Month', axis: 'Units Sold', hover: 'units', prefix: '', format: ',.0f' },
+            revenue: { label: 'Revenue Per Month', axis: 'Revenue', hover: 'revenue', prefix: '$', format: '$,.0f' },
+            profit: { label: 'Gross Profit Per Month', axis: 'Gross Profit', hover: 'profit', prefix: '$', format: '$,.0f' }
+        };
+
+        function parseNumber(value) {
+            const number = Number(String(value ?? '').replace(/[$,% ,]/g, ''));
+            return Number.isFinite(number) ? number : 0;
+        }
+
+        function parseDate(value) {
+            const text = String(value ?? '').trim();
+            const gviz = text.match(/^Date\((\d{4}),(\d{1,2}),(\d{1,2})\)$/);
+            if (gviz) return `${gviz[1]}-${String(Number(gviz[2]) + 1).padStart(2, '0')}-${String(gviz[3]).padStart(2, '0')}`;
+            const mdy = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+            return mdy ? `${mdy[3]}-${mdy[1].padStart(2, '0')}-${mdy[2].padStart(2, '0')}` : '';
+        }
+
+        async function loadLiveSales() {
+            const status = document.getElementById('sales-source');
+            try {
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent('Sales Ledger')}&range=A1:K1000&headers=1&tqx=out:json`;
+                const response = await fetch(url, { cache: 'no-store' });
+                const text = await response.text();
+                const payload = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
+                const headers = payload.table.cols.map((col, index) => col.label || col.id || `Column ${index + 1}`);
+                const live = {};
+                (payload.table.rows || []).forEach(row => {
+                    const record = Object.fromEntries(headers.map((header, index) => [header, row.c?.[index]?.v ?? '']));
+                    const date = parseDate(record['Sold Date'] || record['Date sold']);
+                    if (!date) return;
+                    const bucket = live[date.slice(0, 7)] || { count: 0, revenue: 0, profit: 0 };
+                    bucket.count += 1;
+                    bucket.revenue += parseNumber(record['Sale Price'] || record['Sale price']);
+                    bucket.profit += parseNumber(record['Gross Profit'] || record['Profit']);
+                    live[date.slice(0, 7)] = bucket;
+                });
+                if (Object.keys(live).length) monthlyData = live;
+                status.textContent = `Live sales data · ${Object.keys(live).length} months loaded`;
+                render();
+            } catch (error) {
+                status.textContent = 'Showing cached sales data';
+            }
+        }
 
         function buildTraces() {
             const traces = [];
@@ -171,7 +240,7 @@
                 const counts = [];
                 for (let m = 1; m <= 12; m++) {
                     const key = `${year}-${String(m).padStart(2, '0')}`;
-                    counts.push(monthlyData[key]?.count || 0);
+                    counts.push(monthlyData[key]?.[metric] || 0);
                 }
                 traces.push({
                     name: year,
@@ -184,7 +253,7 @@
                     fill: 'tozeroy',
                     fillcolor: `${colors[year]}45`,
                     connectgaps: true,
-                    hovertemplate: `<b>${year}</b><br>%{x}: %{y} units<extra></extra>`
+                    hovertemplate: `<b>${year}</b><br>%{x}: %{y:${metricConfig[metric].format}} ${metricConfig[metric].hover}<extra></extra>`
                 });
             });
             return traces;
@@ -192,7 +261,7 @@
 
         const layout = {
             title: {
-                text: 'Units Sold Per Month',
+                text: metricConfig[metric].label,
                 font: { color: '#f4f0df', size: 18, family: 'Outfit, sans-serif' }
             },
             xaxis: {
@@ -201,7 +270,8 @@
                 gridcolor: 'rgba(244,240,223,0.08)'
             },
             yaxis: {
-                title: { text: 'Units Sold', font: { color: 'rgba(244,240,223,0.68)' } },
+                title: { text: metricConfig[metric].axis, font: { color: 'rgba(244,240,223,0.68)' } },
+                tickprefix: metricConfig[metric].prefix,
                 tickfont: { color: 'rgba(244,240,223,0.68)' },
                 gridcolor: 'rgba(244,240,223,0.08)',
                 dtick: 2,
@@ -237,8 +307,13 @@
         document.getElementById('toggle-2024').addEventListener('change', render);
         document.getElementById('toggle-2025').addEventListener('change', render);
         document.getElementById('toggle-2026').addEventListener('change', render);
+        document.querySelectorAll('input[name="metric"]').forEach(input => input.addEventListener('change', event => {
+            metric = event.target.value;
+            render();
+        }));
 
         render();
+        loadLiveSales();
     </script>
 </body>
 </html>
