@@ -122,7 +122,7 @@
     </header>
     <main class="page-shell">
         <h1>Sales Per Month</h1>
-        <p class="subtitle">Comparison by year — units sold per month</p>
+        <p class="subtitle">Smoothed shaded comparison by year — units sold per month</p>
         
         <section class="chart-panel">
             <div class="toggle-row">
@@ -175,12 +175,15 @@
                 }
                 traces.push({
                     name: year,
-                    type: 'bar',
+                    type: 'scatter',
+                    mode: 'lines+markers',
                     x: months,
                     y: counts,
-                    marker: { color: colors[year] },
-                    text: counts.map(c => c > 0 ? `${c}` : ''),
-                    textposition: 'outside',
+                    line: { color: colors[year], width: 3, shape: 'spline', smoothing: 1.15 },
+                    marker: { color: colors[year], size: 7, line: { color: '#101411', width: 1 } },
+                    fill: 'tozeroy',
+                    fillcolor: `${colors[year]}45`,
+                    connectgaps: true,
                     hovertemplate: `<b>${year}</b><br>%{x}: %{y} units<extra></extra>`
                 });
             });
@@ -201,7 +204,8 @@
                 title: { text: 'Units Sold', font: { color: 'rgba(244,240,223,0.68)' } },
                 tickfont: { color: 'rgba(244,240,223,0.68)' },
                 gridcolor: 'rgba(244,240,223,0.08)',
-                dtick: 2
+                dtick: 2,
+                rangemode: 'tozero'
             },
             legend: {
                 font: { color: '#f4f0df' },
@@ -209,10 +213,8 @@
             },
             plot_bgcolor: 'rgba(16,20,17,0.5)',
             paper_bgcolor: 'transparent',
-            barmode: 'group',
-            bargap: 0.15,
-            bargroupgap: 0.1,
-            margin: { t: 50, b: 50, l: 50, r: 20 }
+            hovermode: 'x unified',
+            margin: { t: 50, b: 50, l: 60, r: 24 }
         };
 
         const config = { responsive: true, displayModeBar: false };
