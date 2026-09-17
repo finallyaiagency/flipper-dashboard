@@ -300,7 +300,10 @@
                 if (t.name === '2026') return show2026;
                 return true;
             });
-            
+            layout.title.text = metricConfig[metric].label;
+            layout.yaxis.title.text = metricConfig[metric].axis;
+            layout.yaxis.tickprefix = metricConfig[metric].prefix;
+            layout.yaxis.dtick = metric === 'count' ? 2 : undefined;
             Plotly.newPlot('sales-chart', traces, layout, config);
         }
 
