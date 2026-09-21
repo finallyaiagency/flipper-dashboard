@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Groundbnb Inventory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+    <style>
+        :root {
+            --ink: #f4f0df;
+            --muted: rgba(244, 240, 223, 0.68);
+            --panel: rgba(16, 20, 17, 0.88);
+            --line: rgba(244, 240, 223, 0.15);
+            --hud: #42f5a7;
+            --amber: #ffb84a;
+            --cyan: #55d6ff;
+            --runway: #0b0e0d;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            color: var(--ink);
+            font-family: "Outfit", system-ui, sans-serif;
+            background:
+                linear-gradient(90deg, rgba(66, 245, 167, 0.08) 1px, transparent 1px) 0 0 / 46px 46px,
+                linear-gradient(0deg, rgba(255, 184, 74, 0.06) 1px, transparent 1px) 0 0 / 46px 46px,
+                radial-gradient(circle at 16% 12%, rgba(255, 184, 74, 0.16), transparent 26%),
+                radial-gradient(circle at 92% 6%, rgba(85, 214, 255, 0.14), transparent 24%),
+                linear-gradient(135deg, #090d0b 0%, #161915 48%, #0d0f0e 100%);
+        }
+        .top-header {
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            border-bottom: 1px solid var(--line);
+            background: rgba(9, 13, 11, 0.78);
+            backdrop-filter: blur(14px);
+        }
+        .header-nav {
+            width: min(1480px, calc(100% - 28px));
+            min-height: 58px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 18px;
+            flex-wrap: wrap;
+        }
+        .header-link {
+            color: var(--muted);
+            text-decoration: none;
+            font-weight: 800;
+            font-size: 0.88rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .header-link:hover, .header-link.active { color: var(--hud); }
+        .page-shell {
+            width: min(1480px, calc(100% - 28px));
+            margin: 0 auto;
+            padding: 26px 0 60px;
+        }
+        h1 { margin: 0 0 4px; font-size: 1.9rem; font-weight: 900; letter-spacing: -0.01em; }
+        .subtitle { color: var(--muted); margin: 0 0 22px; font-size: 0.95rem; }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .kpi {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 18px;
+        }
+        .kpi .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 6px; }
+        .kpi .value { font-size: 1.7rem; font-weight: 900; color: var(--hud); }
+        .kpi .sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            gap: 14px;
+            margin-bottom: 22px;
+        }
+        .chart-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 6px 2px;
+        }
+        .chart-card h2 { margin: 8px 0 0 18px; font-size: 1.05rem; font-weight: 700; }
+        .flags {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 22px;
+        }
+        .flags h2 { margin: 0 0 8px; font-size: 1.05rem; }
+        .flags ul { margin: 0; padding-left: 20px; color: var(--muted); font-size: 0.92rem; }
+        .flags li { margin: 4px 0; }
+        .flags li b { color: var(--amber); }
+        table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+        .table-card {
+            background: var(--panel);
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 16px 18px;
+            overflow-x: auto;
+        }
+        .table-card h2 { margin: 0 0 10px; font-size: 1.05rem; }
+        th { text-align: left; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+        td { padding: 8px 10px; border-bottom: 1px solid rgba(244,240,223,0.06); }
+        td.num, th.num { text-align: right; white-space: nowrap; }
+        tr:hover td { background: rgba(66, 245, 167, 0.04); }
+        .status { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
+        .status .ok { color: var(--hud); }
+        .status .err { color: #ff6b6b; }
+    </style>
+</head>
+<body>
+    <header class="top-header">
+        <nav class="header-nav">
+            <a class="header-link" href="/flip-tracker.html">Flip Tracker</a>
+            <a class="header-link" href="/Flipping%20Income%20Chart/">Income Chart</a>
+            <a class="header-link" href="/sales-by-month.html">Sales</a>
+            <a class="header-link active" href="/inventory.html">Inventory</a>
+        </nav>
+    </header>
+    <main class="page-shell">
+        <h1>Groundbnb Inventory</h1>
+        <p class="subtitle">Live from the Groundbnb Store spreadsheet &mdash; Raw Import tab. Refreshes on every page load.</p>
+        <div class="status" id="status">Loading inventory&hellip;</div>
+
+        <section class="kpi-grid" id="kpis" hidden>
+            <div class="kpi"><div class="label">Active items</div><div class="value" id="kpi-count">&ndash;</div><div class="sub">In Inventory = 1, unsold</div></div>
+            <div class="kpi"><div class="label">Cost basis</div><div class="value" id="kpi-paid">&ndash;</div><div class="sub">Sum of Paid on active items</div></div>
+            <div class="kpi"><div class="label">Asking coverage</div><div class="value" id="kpi-askcount">&ndash;</div><div class="sub" id="kpi-asktotal"></div></div>
+            <div class="kpi"><div class="label">Potential profit</div><div class="value" id="kpi-profit">&ndash;</div><div class="sub">Asking &minus; paid, priced items only</div></div>
+        </section>
+
+        <section class="charts-grid" id="charts" hidden>
+            <div class="chart-card"><h2>Items by category</h2><div id="chart-count"></div></div>
+            <div class="chart-card"><h2>Cost basis by category</h2><div id="chart-value"></div></div>
+        </section>
+
+        <section class="flags" id="flags" hidden>
+            <h2>Data quality flags</h2>
+            <ul id="flag-list"></ul>
+        </section>
+
+        <section class="table-card" id="table-card" hidden>
+            <h2>Active items</h2>
+            <table>
+                <thead><tr><th>Type</th><th>Description</th><th>Acquired</th><th class="num">Paid</th><th class="num">Asking</th></tr></thead>
+                <tbody id="item-rows"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        const SHEET_ID = "12TELzT2bzIxdry3pyLvSv3hdWJpkdvGC25aSlvsBq94";
+        const TAB_NAME = "Raw Import - Adventure Asset Tracker";
+        // Merge tiny kayak slices for chart readability (table keeps raw types)
+        const CHART_TYPE = t => (t === "Inflatable kayak" || t === "Youth kayak") ? "Kayaks (misc)" : t;
+        const PALETTE = ["#5aa9e6","#7fc8f8","#f6ae2d","#f26419","#ef8354","#9b5de5","#55dde0","#ff5964","#42f5a7"];
+        const money = v => v == null ? "&ndash;" : "$" + Number(v).toLocaleString("en-US", {maximumFractionDigits: 0});
+
+        function cell(row, i) { const c = row.c[i]; return c ? c.v : null; }
+
+        async function load() {
+            const status = document.getElementById("status");
+            const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(TAB_NAME)}`;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error("sheet fetch failed: " + res.status);
+            const text = await res.text();
+            const data = JSON.parse(text.substring(text.indexOf("{"), text.lastIndexOf("}") + 1));
+            if (data.status !== "ok") throw new Error("sheet query error");
+
+            const items = [];
+            for (const row of data.table.rows || []) {
+                const sold = cell(row, 15), inInv = cell(row, 16), dateSold = cell(row, 7);
+                const desc = cell(row, 1);
+                if (sold === 0 && inInv === 1 && dateSold == null && desc && String(desc).trim()) {
+                    items.push({
+                        type: String(cell(row, 0) || "uncategorized").trim(),
+                        desc: String(desc).trim(),
+                        bought: cell(row, 3),
+                        paid: cell(row, 5),
+                        asking: cell(row, 18)
+                    });
+                }
+            }
+            render(items);
+            status.innerHTML = `<span class="ok">Live</span> &mdash; ${items.length} active items, updated ${new Date().toLocaleString()}`;
+        }
+
+        function render(items) {
+            const paid = items.filter(i => i.paid);
+            const priced = items.filter(i => i.asking);
+            const both = items.filter(i => i.paid && i.asking);
+            const totalPaid = paid.reduce((s, i) => s + i.paid, 0);
+            const totalAsk = priced.reduce((s, i) => s + i.asking, 0);
+            const profit = both.reduce((s, i) => s + (i.asking - i.paid), 0);
+
+            document.getElementById("kpi-count").textContent = items.length;
+            document.getElementById("kpi-paid").textContent = "$" + Math.round(totalPaid).toLocaleString();
+            document.getElementById("kpi-askcount").textContent = `${priced.length} of ${items.length}`;
+            document.getElementById("kpi-asktotal").textContent = "Asking total " + money(totalAsk);
+            document.getElementById("kpi-profit").textContent = "$" + Math.round(profit).toLocaleString();
+
+            const byType = {};
+            for (const i of items) {
+                const t = CHART_TYPE(i.type);
+                byType[t] = byType[t] || {n: 0, paid: 0};
+                byType[t].n += 1;
+                if (i.paid) byType[t].paid += i.paid;
+            }
+            const entries = Object.entries(byType).sort((a, b) => b[1].n - a[1].n);
+            const labels = entries.map(e => e[0]);
+
+            const dark = {paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
+                          font: {color: "#f4f0df", family: "Outfit, sans-serif"}};
+            const donut = (values, textinfo) => ({
+                type: "pie", labels, values, hole: 0.55, marker: {colors: PALETTE, line: {color: "#0b0e0d", width: 3}},
+                textinfo, textfont: {color: "#f4f0df", size: 12}, hoverinfo: "label+value+percent"
+            });
+
+            Plotly.newPlot("chart-count", [donut(entries.map(e => e[1].n), "label+percent")],
+                {...dark, margin: {t: 20, b: 20}, showlegend: false, height: 380});
+            Plotly.newPlot("chart-value", [donut(entries.map(e => Math.round(e[1].paid)), "label+percent")],
+                {...dark, margin: {t: 20, b: 20}, showlegend: false, height: 380});
+
+            const flags = [];
+            const noAsk = items.filter(i => !i.asking);
+            if (noAsk.length) flags.push(`<b>${noAsk.length} of ${items.length}</b> items have no asking price &mdash; incl. ${noAsk.slice().sort((a,b)=>(b.paid||0)-(a.paid||0)).slice(0,3).map(i => `${i.desc} (${money(i.paid)})`).join(", ")}`);
+            const noCost = items.filter(i => !i.paid);
+            if (noCost.length) flags.push(`<b>${noCost.length}</b> items have no recorded cost`);
+            const elite100 = items.find(i => /elite 100/i.test(i.desc) && !/v2/i.test(i.desc));
+            if (elite100) flags.push(`"${elite100.desc}" should read <b>BLUETTI Elite 100 V2</b>`);
+            document.getElementById("flag-list").innerHTML = flags.map(f => `<li>${f}</li>`).join("") || "<li>None</li>";
+
+            const rows = items.slice().sort((a, b) => (b.paid || 0) - (a.paid || 0)).map(i => {
+                let bought = "&ndash;";
+                if (i.bought) { const m = String(i.bought).match(/Date\((\d+),(\d+),(\d+)\)/); bought = m ? `${m[2]}/${m[3]}/${m[1]}` : String(i.bought); }
+                return `<tr><td>${i.type}</td><td>${i.desc}</td><td>${bought}</td><td class="num">${money(i.paid)}</td><td class="num">${money(i.asking)}</td></tr>`;
+            }).join("");
+            document.getElementById("item-rows").innerHTML = rows;
+
+            for (const id of ["kpis", "charts", "flags", "table-card"]) document.getElementById(id).hidden = false;
+        }
+
+        load().catch(e => {
+            document.getElementById("status").innerHTML = `<span class="err">Could not load live inventory: ${e.message}</span>`;
+        });
+    </script>
+</body>
+</html>
