@@ -196,7 +196,7 @@
         function getFilteredMonthlyData() {
             const ignoreZero = document.getElementById('toggle-ignore-zero')?.checked ?? true;
             const filtered = {};
-            years.forEach(y => { filtered[y] = new Array(12).fill(0); });
+            years.forEach(y => { filtered[y] = new Array(12).fill(0).map(() => ({ count: 0, revenue: 0, profit: 0 })); });
             
             let ignored = 0;
             rawSalesRecords.forEach(record => {
@@ -212,25 +212,27 @@
                 }
                 
                 if (filtered[year] && month >= 0 && month < 12) {
-                    const key = `${year}-${String(month + 1).padStart(2, '0')}`;
-                    if (!monthlyData[key]) monthlyData[key] = { count: 0, revenue: 0, profit: 0 };
-                    filtered[year][month] += 1;
+                    filtered[year][month].count += 1;
+                    filtered[year][month].revenue += parseNumber(record['Sale Price'] || record['Sale price']);
+                    filtered[year][month].profit += parseNumber(record['Gross Profit'] || record['Profit']);
                 }
             });
             
-            // Update monthlyData counts based on filtered data
+            // Rebuild monthlyData from filtered results
+            monthlyData = {};
             years.forEach(year => {
                 for (let m = 0; m < 12; m++) {
                     const key = `${year}-${String(m + 1).padStart(2, '0')}`;
-                    if (monthlyData[key]) {
-                        monthlyData[key].count = filtered[year][m];
+                    const data = filtered[year][m];
+                    if (data.count > 0 || data.revenue > 0 || data.profit > 0) {
+                        monthlyData[key] = { ...data };
                     }
                 }
             });
             
             const status = document.getElementById('sales-source');
             if (status) {
-                const totalUnits = Object.values(filtered).flat().reduce((a, b) => a + b, 0);
+                const totalUnits = Object.values(filtered).flat().reduce((a, b) => a + b.count, 0);
                 let msg = `Live sales data · ${totalUnits} units shown`;
                 if (ignored > 0) msg += ` (${ignored} zero-cost excluded)`;
                 status.textContent = msg;
@@ -252,17 +254,6 @@
                 (payload.table.rows || []).forEach(row => {
                     const record = Object.fromEntries(headers.map((header, index) => [header, row.c?.[index]?.v ?? '']));
                     rawSalesRecords.push(record);
-                });
-                
-                // Build base monthlyData from all records (revenue/profit not filtered)
-                monthlyData = {};
-                rawSalesRecords.forEach(record => {
-                    const date = parseDate(record['Sold Date'] || record['Date sold']);
-                    if (!date) return;
-                    const key = date.slice(0, 7);
-                    if (!monthlyData[key]) monthlyData[key] = { count: 0, revenue: 0, profit: 0 };
-                    monthlyData[key].revenue += parseNumber(record['Sale Price'] || record['Sale price']);
-                    monthlyData[key].profit += parseNumber(record['Gross Profit'] || record['Profit']);
                 });
                 
                 getFilteredMonthlyData();
