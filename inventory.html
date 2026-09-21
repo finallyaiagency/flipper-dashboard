@@ -244,11 +244,7 @@
             }
             [...sides.left, ...sides.right].forEach(p => {
                 const right = Math.cos(p.mid) >= 0;
-                const lx = right ? cx + R + 78 : cx - R - 78;
-                const [sx, sy] = polar(cx, cy, R + 6, p.mid);
-                el("line", {x1: sx, y1: sy, x2: lx + (right ? -14 : 14), y2: p.y,
-                    stroke: "rgba(244,240,223,0.45)", "stroke-width": 1.2}, svg);
-                el("circle", {cx: sx, cy: sy, r: 2.6, fill: p.e.color}, svg);
+                let lx = right ? cx + R + 78 : cx - R - 78;
                 const t1 = el("text", {x: lx, y: p.y - 4, "text-anchor": right ? "start" : "end",
                     fill: "#f4f0df", "font-size": "14.5", "font-weight": "700",
                     "font-family": "Outfit, sans-serif"}, svg);
@@ -257,6 +253,15 @@
                     fill: "rgba(244,240,223,0.72)", "font-size": "13",
                     "font-family": "Outfit, sans-serif"}, svg);
                 t2.textContent = `${fmtVal(p.e.value)}  \u00b7  ${(p.frac * 100).toFixed(1)}%`;
+                // clamp labels so long names never leave the viewBox
+                const w = Math.max(t1.getComputedTextLength(), t2.getComputedTextLength());
+                if (right) { if (lx + w > W - 8) lx = W - 8 - w; }
+                else { if (lx - w < 8) lx = w + 8; }
+                t1.setAttribute("x", lx); t2.setAttribute("x", lx);
+                const [sx, sy] = polar(cx, cy, R + 6, p.mid);
+                el("line", {x1: sx, y1: sy, x2: lx + (right ? -14 : 14), y2: p.y,
+                    stroke: "rgba(244,240,223,0.45)", "stroke-width": 1.2}, svg);
+                el("circle", {cx: sx, cy: sy, r: 2.6, fill: p.e.color}, svg);
             });
         }
 
@@ -315,6 +320,9 @@
             const colorOf = {};
             cats.forEach((c, i) => colorOf[c] = PALETTE[i % PALETTE.length]);
 
+            // unhide before drawing charts: label measurement needs rendered text
+            for (const id of ["kpis", "charts", "flags", "table-card"]) document.getElementById(id).hidden = false;
+
             const countEntries = Object.entries(byType)
                 .map(([label, v]) => ({label, value: v.n, color: colorOf[label]}))
                 .sort((a, b) => b.value - a.value);
@@ -360,8 +368,6 @@
                 return `<tr><td>${i.type}</td><td>${i.desc}</td><td>${bought}</td><td class="num">${money(i.paid)}</td><td class="num">${money(i.asking)}</td><td class="num ${cls}">${suggCell}</td></tr>`;
             }).join("");
             document.getElementById("item-rows").innerHTML = rows;
-
-            for (const id of ["kpis", "charts", "flags", "table-card"]) document.getElementById(id).hidden = false;
         }
 
         load().catch(e => {
