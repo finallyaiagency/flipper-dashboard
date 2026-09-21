@@ -50,7 +50,7 @@ window.INVENTORY_SUGGESTED = {
     "187": {"suggested": 250, "basis": "Discontinued ($720 launch); used 34in 3440x1440 curved monitors $200-280; current $250 asking within 10% -> keep"},
     "188": {"suggested": 90, "basis": "new $109.99 (Sep 2026 retail); eBay open-box $89.99, used $48; hurricane season full rate; keep $90"},
     "189": {"suggested": 350, "basis": "new $499; BLUETTI-direct eBay used $399-449, certified refurb $473.75; 80%-of-new cap $399; hurricane season full rate"},
-    "190": {"suggested": 1200, "basis": "new $1,549 (down from $2,399 launch); BLUETTI eBay refurb $1,099-1,249; 80%-of-new cap $1,239; hurricane season full rate"},
+    "190": {"suggested": 1100, "basis": "Private used, no transferable warranty; BLUETTI eBay refurb $1,199-1,249 w/ warranty+returns; must price under refurb. Below his $1,412.66 all-in cost — no profitable flip; keep for personal use"},
     "191": {"suggested": 150, "basis": "New EONECROSS $183.95 (Amazon) / generic new $150 (eBay); his unit listed new; end-of-season -10%"}
   }
 };
