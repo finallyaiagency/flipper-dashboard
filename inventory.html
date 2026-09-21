@@ -277,7 +277,7 @@
                 const desc = cell(row, 1);
                 if (sold === 0 && inInv === 1 && dateSold == null && desc && String(desc).trim()) {
                     items.push({
-                        rowNum: ri + 1, // gviz rows are in sheet order, header = row 1
+                        rowNum: ri + 2, // gviz rows exclude the header: rows[0] = sheet row 2
                         type: String(cell(row, 0) || "uncategorized").trim(),
                         desc: String(desc).trim(),
                         bought: cell(row, 3),
