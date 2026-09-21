@@ -5,7 +5,7 @@ window.INVENTORY_SUGGESTED = {
     "54": {"suggested": 60, "basis": "new retail ~$77 (Nellis/Amazon VTUS-2000); used auction $4-11 untested; hurricane season full rate; keep $60"},
     "69": {"suggested": 25, "basis": "new ~$30-35 (Duracell 1A new $29.99-32.95 Heartland/Klarna); used ~$15-20; hurricane season full rate"},
     "70": {"suggested": 10, "basis": "new generic 10A PWM ~$11-13 (eBay/PicClick avg $11.40); name-brand 20A MPPT ~$26-30; hurricane season full rate"},
-    "108": {"suggested": 700, "basis": "New retail: Aquaglide MSRP $930 (sold out), ewirelessgear sold out $700; auction comp $252; NIB priced under retail"},
+    "108": {"suggested": 450, "basis": "Used 2x, like-new; new street ~$700 (Amazon/ewirelessgear); used ~65% of new; end-of-season -10%"},
     "109": {"suggested": 25, "basis": "eBay new generic 10.2-11.5ft kayak covers $17-19 (318 sold); used Mancro priced above new generics but below brand-new; 10% end-of-season cut"},
     "111": {"suggested": 25, "basis": "Play It Again Sports used Jr-12 shorties $29.99, eBay pre-owned shorty $30, Poshmark $16; fins included; full rate (fall demand) — matches sheet ask"},
     "115": {"suggested": 50, "basis": "Amazon new 15-20 cu ft soft cargo bags $44-70; evergreen gear, 80%-of-new cap -> $50; sheet ask $60 above market"},
