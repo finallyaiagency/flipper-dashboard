@@ -152,7 +152,8 @@
                 <label><input type="checkbox" id="toggle-2025" checked> <span style="color:#55d6ff;">2025</span></label>
                 <label><input type="checkbox" id="toggle-2026" checked> <span style="color:#42f5a7;">2026</span></label>
                 <div class="toggle-sep"></div>
-                <label><input type="checkbox" id="toggle-ignore-zero" checked> <span style="color:#ff6b6b;">Ignore $0 cost basis</span></label>
+                <label><input type="checkbox" id="toggle-include-free" checked> <span style="color:#ff6b6b;">Include Free</span></label>
+                <label><input type="checkbox" id="toggle-include-paid" checked> <span style="color:#55d6ff;">Include Paid</span></label>
             </div>
             <div class="metric-row" role="group" aria-label="Sales chart metric">
                 <span class="metric-label">Show:</span>
@@ -194,11 +195,13 @@
         }
 
         function getFilteredMonthlyData() {
-            const ignoreZero = document.getElementById('toggle-ignore-zero')?.checked ?? true;
+            const includeFree = document.getElementById('toggle-include-free')?.checked ?? true;
+            const includePaid = document.getElementById('toggle-include-paid')?.checked ?? true;
             const filtered = {};
             years.forEach(y => { filtered[y] = new Array(12).fill(0).map(() => ({ count: 0, revenue: 0, profit: 0 })); });
             
-            let ignored = 0;
+            let freeCount = 0;
+            let paidCount = 0;
             rawSalesRecords.forEach(record => {
                 const date = parseDate(record['Sold Date'] || record['Date sold']);
                 if (!date) return;
@@ -206,10 +209,11 @@
                 const month = parseInt(date.slice(5, 7), 10) - 1;
                 
                 const costBasis = parseNumber(record['Cost Basis'] || record['Cost Basis']);
-                if (ignoreZero && costBasis <= 0) {
-                    ignored++;
-                    return;
-                }
+                const isFree = costBasis <= 0;
+                if (isFree && !includeFree) return;
+                if (!isFree && !includePaid) return;
+                if (isFree) freeCount++;
+                else paidCount++;
                 
                 if (filtered[year] && month >= 0 && month < 12) {
                     filtered[year][month].count += 1;
@@ -233,8 +237,11 @@
             const status = document.getElementById('sales-source');
             if (status) {
                 const totalUnits = Object.values(filtered).flat().reduce((a, b) => a + b.count, 0);
-                let msg = `Live sales data · ${totalUnits} units shown`;
-                if (ignored > 0) msg += ` (${ignored} zero-cost excluded)`;
+                let msg = `Live · ${totalUnits} units`;
+                const parts = [];
+                if (freeCount > 0) parts.push(`${freeCount} free`);
+                if (paidCount > 0) parts.push(`${paidCount} paid`);
+                if (parts.length) msg += ` (${parts.join(', ')})`;
                 status.textContent = msg;
             }
             
@@ -481,7 +488,8 @@
         document.getElementById('toggle-2024').addEventListener('change', render);
         document.getElementById('toggle-2025').addEventListener('change', render);
         document.getElementById('toggle-2026').addEventListener('change', render);
-        document.getElementById('toggle-ignore-zero').addEventListener('change', render);
+        document.getElementById('toggle-include-free').addEventListener('change', render);
+        document.getElementById('toggle-include-paid').addEventListener('change', render);
         document.querySelectorAll('input[name="metric"]').forEach(input => input.addEventListener('change', event => {
             metric = event.target.value;
             render();
