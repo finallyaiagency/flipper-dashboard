@@ -117,6 +117,9 @@
         th { text-align: left; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.08em; color: var(--muted); padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
         td { padding: 8px 10px; border-bottom: 1px solid rgba(244,240,223,0.06); }
         td.num, th.num { text-align: right; white-space: nowrap; }
+        .sugg-high { color: var(--amber); font-weight: 700; }
+        .sugg-low { color: var(--hud); font-weight: 700; }
+        .legend { color: var(--muted); font-size: 0.82rem; margin: 10px 0 0; }
         tr:hover td { background: rgba(66, 245, 167, 0.04); }
         .status { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
         .status .ok { color: var(--hud); }
@@ -157,12 +160,16 @@
         <section class="table-card" id="table-card" hidden>
             <h2>Active items</h2>
             <table>
-                <thead><tr><th>Type</th><th>Description</th><th>Acquired</th><th class="num">Paid</th><th class="num">Asking</th></tr></thead>
+                <thead><tr><th>Type</th><th>Description</th><th>Acquired</th><th class="num">Paid</th><th class="num">Asking</th><th class="num">Suggested</th></tr></thead>
                 <tbody id="item-rows"></tbody>
             </table>
+            <p class="legend">Suggested = researched online going rate, season-adjusted for late-September NC (hover for comps).
+            <span class="sugg-high">Amber</span> = ad priced &gt;20% above suggested.
+            <span class="sugg-low">Green</span> = ad priced &gt;20% below suggested.</p>
         </section>
     </main>
 
+    <script src="/inventory-suggested.js"></script>
     <script>
         const SHEET_ID = "12TELzT2bzIxdry3pyLvSv3hdWJpkdvGC25aSlvsBq94";
         const TAB_NAME = "Raw Import - Adventure Asset Tracker";
@@ -261,11 +268,14 @@
             if (data.status !== "ok") throw new Error("sheet query error");
 
             const items = [];
-            for (const row of data.table.rows || []) {
+            const tableRows = data.table.rows || [];
+            for (let ri = 0; ri < tableRows.length; ri++) {
+                const row = tableRows[ri];
                 const sold = cell(row, 15), inInv = cell(row, 16), dateSold = cell(row, 7);
                 const desc = cell(row, 1);
                 if (sold === 0 && inInv === 1 && dateSold == null && desc && String(desc).trim()) {
                     items.push({
+                        rowNum: ri + 1, // gviz rows are in sheet order, header = row 1
                         type: String(cell(row, 0) || "uncategorized").trim(),
                         desc: String(desc).trim(),
                         bought: cell(row, 3),
@@ -328,10 +338,22 @@
             if (elite100) flags.push(`"${elite100.desc}" should read <b>BLUETTI Elite 100 V2</b>`);
             document.getElementById("flag-list").innerHTML = flags.map(f => `<li>${f}</li>`).join("") || "<li>None</li>";
 
+            const suggDB = (window.INVENTORY_SUGGESTED && window.INVENTORY_SUGGESTED.rows) || {};
             const rows = items.slice().sort((a, b) => (b.paid || 0) - (a.paid || 0)).map(i => {
                 let bought = "&ndash;";
                 if (i.bought) { const m = String(i.bought).match(/Date\((\d+),(\d+),(\d+)\)/); bought = m ? `${m[2]}/${m[3]}/${m[1]}` : String(i.bought); }
-                return `<tr><td>${i.type}</td><td>${i.desc}</td><td>${bought}</td><td class="num">${money(i.paid)}</td><td class="num">${money(i.asking)}</td></tr>`;
+                const s = suggDB[String(i.rowNum)];
+                let suggCell = "&ndash;", cls = "";
+                if (s) {
+                    const basis = String(s.basis).replace(/"/g, "&quot;");
+                    if (i.asking && s.suggested) {
+                        const ratio = i.asking / s.suggested;
+                        if (ratio >= 1.2) cls = "sugg-high";
+                        else if (ratio <= 0.8) cls = "sugg-low";
+                    }
+                    suggCell = `<span title="${basis}">$${Number(s.suggested).toLocaleString("en-US")}</span>`;
+                }
+                return `<tr><td>${i.type}</td><td>${i.desc}</td><td>${bought}</td><td class="num">${money(i.paid)}</td><td class="num">${money(i.asking)}</td><td class="num ${cls}">${suggCell}</td></tr>`;
             }).join("");
             document.getElementById("item-rows").innerHTML = rows;
 
