@@ -119,6 +119,7 @@
         td.num, th.num { text-align: right; white-space: nowrap; }
         .sugg-high { color: var(--amber); font-weight: 700; }
         .sugg-low { color: var(--hud); font-weight: 700; }
+        .sugg-undercost { color: #ff6b6b; font-weight: 700; }
         .legend { color: var(--muted); font-size: 0.82rem; margin: 10px 0 0; }
         tr:hover td { background: rgba(66, 245, 167, 0.04); }
         .status { color: var(--muted); font-size: 0.85rem; margin-bottom: 14px; }
@@ -165,7 +166,8 @@
             </table>
             <p class="legend">Suggested = researched online going rate, season-adjusted for late-September NC (hover for comps).
             <span class="sugg-high">Amber</span> = ad priced &gt;20% above suggested.
-            <span class="sugg-low">Green</span> = ad priced &gt;20% below suggested.</p>
+            <span class="sugg-low">Green</span> = ad priced &gt;20% below suggested.
+            <span class="sugg-undercost">Red</span> = suggested below your cost.</p>
         </section>
     </main>
 
@@ -346,7 +348,9 @@
                 let suggCell = "&ndash;", cls = "";
                 if (s) {
                     const basis = String(s.basis).replace(/"/g, "&quot;");
-                    if (i.asking && s.suggested) {
+                    if (i.paid && s.suggested < i.paid) {
+                        cls = "sugg-undercost";
+                    } else if (i.asking && s.suggested) {
                         const ratio = i.asking / s.suggested;
                         if (ratio >= 1.2) cls = "sugg-high";
                         else if (ratio <= 0.8) cls = "sugg-low";
