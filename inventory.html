@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Groundbnb Inventory</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
     <style>
         :root {
             --ink: #f4f0df;
@@ -81,17 +80,20 @@
         .kpi .sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
             gap: 14px;
             margin-bottom: 22px;
         }
         .chart-card {
-            background: var(--panel);
             border: 1px solid var(--line);
             border-radius: 14px;
-            padding: 10px 6px 2px;
+            padding: 18px 10px 8px;
+            background: linear-gradient(180deg, #141a24 0%, #0d1119 55%, #090c12 100%);
+            overflow: hidden;
         }
-        .chart-card h2 { margin: 8px 0 0 18px; font-size: 1.05rem; font-weight: 700; }
+        .chart-card h2 { margin: 0 0 2px 14px; font-size: 1.05rem; font-weight: 700; }
+        .chart-card .footnote { margin: 0 0 0 14px; font-size: 0.78rem; color: var(--muted); min-height: 1.2em; }
+        .chart-card svg { width: 100%; height: auto; display: block; }
         .flags {
             background: var(--panel);
             border: 1px solid var(--line);
@@ -143,8 +145,8 @@
         </section>
 
         <section class="charts-grid" id="charts" hidden>
-            <div class="chart-card"><h2>Items by category</h2><div id="chart-count"></div></div>
-            <div class="chart-card"><h2>Cost basis by category</h2><div id="chart-value"></div></div>
+            <div class="chart-card"><h2>Items by category</h2><p class="footnote" id="fn-count"></p><svg id="chart-count" viewBox="0 0 640 440"></svg></div>
+            <div class="chart-card"><h2>Cost basis by category</h2><p class="footnote" id="fn-value"></p><svg id="chart-value" viewBox="0 0 640 440"></svg></div>
         </section>
 
         <section class="flags" id="flags" hidden>
@@ -166,10 +168,88 @@
         const TAB_NAME = "Raw Import - Adventure Asset Tracker";
         // Merge tiny kayak slices for chart readability (table keeps raw types)
         const CHART_TYPE = t => (t === "Inflatable kayak" || t === "Youth kayak") ? "Kayaks (misc)" : t;
-        const PALETTE = ["#5aa9e6","#7fc8f8","#f6ae2d","#f26419","#ef8354","#9b5de5","#55dde0","#ff5964","#42f5a7"];
-        const money = v => v == null ? "&ndash;" : "$" + Number(v).toLocaleString("en-US", {maximumFractionDigits: 0});
+        const PALETTE = ["#5aa9e6","#f6ae2d","#9b5de5","#ef8354","#55dde0","#ff5964","#42f5a7","#f26419","#7fc8f8","#c8b6ff"];
+        const money = v => v == null ? "\u2013" : "$" + Number(v).toLocaleString("en-US", {maximumFractionDigits: 0});
 
         function cell(row, i) { const c = row.c[i]; return c ? c.v : null; }
+
+        // ---- SVG donut with outside labels + leader lines ----
+        function polar(cx, cy, r, a) { return [cx + r * Math.cos(a), cy + r * Math.sin(a)]; }
+        function arcPath(cx, cy, rOut, rIn, a0, a1) {
+            const [x0, y0] = polar(cx, cy, rOut, a0), [x1, y1] = polar(cx, cy, rOut, a1);
+            const [x2, y2] = polar(cx, cy, rIn, a1), [x3, y3] = polar(cx, cy, rIn, a0);
+            const large = (a1 - a0) > Math.PI ? 1 : 0;
+            return `M${x0},${y0} A${rOut},${rOut} 0 ${large} 1 ${x1},${y1} L${x2},${y2} A${rIn},${rIn} 0 ${large} 0 ${x3},${y3} Z`;
+        }
+        const NS = "http://www.w3.org/2000/svg";
+        function el(tag, attrs, parent) {
+            const e = document.createElementNS(NS, tag);
+            for (const k in attrs) e.setAttribute(k, attrs[k]);
+            if (parent) parent.appendChild(e);
+            return e;
+        }
+
+        function renderDonut(svg, entries, fmtVal, centerTop, centerBottom) {
+            // entries: [{label, value, color}] sorted desc; zero values filtered by caller
+            const W = 640, H = 440, cx = 300, cy = 215, R = 148, rIn = 88;
+            while (svg.firstChild) svg.removeChild(svg.firstChild);
+            const total = entries.reduce((s, e) => s + e.value, 0);
+            let a = -Math.PI / 2;
+            const gap = 0.022;
+            const placed = [];
+            entries.forEach(e => {
+                const frac = e.value / total;
+                const a0 = a + gap / 2, a1 = a + frac * Math.PI * 2 - gap / 2;
+                if (a1 > a0) svg.appendChild(el("path", {
+                    d: arcPath(cx, cy, R, rIn, a0, a1), fill: e.color, stroke: "#0b0e0d", "stroke-width": 2
+                }));
+                const mid = a + frac * Math.PI * 2 / 2;
+                placed.push({e, frac, mid});
+                a += frac * Math.PI * 2;
+            });
+            // center total
+            const ct = el("text", {x: cx, y: cy - 8, "text-anchor": "middle", fill: "#f4f0df",
+                "font-size": "34", "font-weight": "900", "font-family": "Outfit, sans-serif"}, svg);
+            ct.textContent = centerTop;
+            const cb = el("text", {x: cx, y: cy + 20, "text-anchor": "middle", fill: "rgba(244,240,223,0.68)",
+                "font-size": "14", "font-family": "Outfit, sans-serif"}, svg);
+            cb.textContent = centerBottom;
+            // labels with leader lines; skip slivers < 3%
+            const labels = placed.filter(p => p.frac >= 0.03);
+            const sides = {left: [], right: []};
+            labels.forEach(p => {
+                const [ex, ey] = polar(cx, cy, R, p.mid);
+                const side = Math.cos(p.mid) >= 0 ? "right" : "left";
+                sides[side].push({...p, ex, ey, y: ey});
+            });
+            const minDy = 30;
+            for (const side of ["left", "right"]) {
+                const arr = sides[side].sort((x, y) => x.y - y.y);
+                for (let i = 1; i < arr.length; i++)
+                    if (arr[i].y - arr[i-1].y < minDy) arr[i].y = arr[i-1].y + minDy;
+                // recenter block if it drifted
+                const over = arr.length ? (arr[arr.length-1].y - (cy + R + 30)) : 0;
+                if (over > 0) arr.forEach(p => p.y -= over);
+                const under = arr.length ? ((cy - R - 10) - arr[0].y) : 0;
+                if (under > 0) arr.forEach(p => p.y += under);
+            }
+            [...sides.left, ...sides.right].forEach(p => {
+                const right = Math.cos(p.mid) >= 0;
+                const lx = right ? cx + R + 78 : cx - R - 78;
+                const [sx, sy] = polar(cx, cy, R + 6, p.mid);
+                el("line", {x1: sx, y1: sy, x2: lx + (right ? -14 : 14), y2: p.y,
+                    stroke: "rgba(244,240,223,0.45)", "stroke-width": 1.2}, svg);
+                el("circle", {cx: sx, cy: sy, r: 2.6, fill: p.e.color}, svg);
+                const t1 = el("text", {x: lx, y: p.y - 4, "text-anchor": right ? "start" : "end",
+                    fill: "#f4f0df", "font-size": "14.5", "font-weight": "700",
+                    "font-family": "Outfit, sans-serif"}, svg);
+                t1.textContent = p.e.label;
+                const t2 = el("text", {x: lx, y: p.y + 14, "text-anchor": right ? "start" : "end",
+                    fill: "rgba(244,240,223,0.72)", "font-size": "13",
+                    "font-family": "Outfit, sans-serif"}, svg);
+                t2.textContent = `${fmtVal(p.e.value)}  \u00b7  ${(p.frac * 100).toFixed(1)}%`;
+            });
+        }
 
         async function load() {
             const status = document.getElementById("status");
@@ -219,20 +299,25 @@
                 byType[t].n += 1;
                 if (i.paid) byType[t].paid += i.paid;
             }
-            const entries = Object.entries(byType).sort((a, b) => b[1].n - a[1].n);
-            const labels = entries.map(e => e[0]);
+            const cats = Object.keys(byType).sort();
+            const colorOf = {};
+            cats.forEach((c, i) => colorOf[c] = PALETTE[i % PALETTE.length]);
 
-            const dark = {paper_bgcolor: "rgba(0,0,0,0)", plot_bgcolor: "rgba(0,0,0,0)",
-                          font: {color: "#f4f0df", family: "Outfit, sans-serif"}};
-            const donut = (values, textinfo) => ({
-                type: "pie", labels, values, hole: 0.55, marker: {colors: PALETTE, line: {color: "#0b0e0d", width: 3}},
-                textinfo, textfont: {color: "#f4f0df", size: 12}, hoverinfo: "label+value+percent"
-            });
+            const countEntries = Object.entries(byType)
+                .map(([label, v]) => ({label, value: v.n, color: colorOf[label]}))
+                .sort((a, b) => b.value - a.value);
+            renderDonut(document.getElementById("chart-count"), countEntries,
+                v => `${v} items`, String(items.length), "active items");
 
-            Plotly.newPlot("chart-count", [donut(entries.map(e => e[1].n), "label+percent")],
-                {...dark, margin: {t: 20, b: 20}, showlegend: false, height: 380});
-            Plotly.newPlot("chart-value", [donut(entries.map(e => Math.round(e[1].paid)), "label+percent")],
-                {...dark, margin: {t: 20, b: 20}, showlegend: false, height: 380});
+            const valueEntries = Object.entries(byType)
+                .map(([label, v]) => ({label, value: Math.round(v.paid), color: colorOf[label]}))
+                .filter(e => e.value > 0)
+                .sort((a, b) => b.value - a.value);
+            const zeroCats = Object.entries(byType).filter(([_, v]) => Math.round(v.paid) === 0).map(([l]) => l);
+            renderDonut(document.getElementById("chart-value"), valueEntries,
+                v => money(v), money(Math.round(totalPaid)), "cost basis");
+            document.getElementById("fn-value").textContent =
+                zeroCats.length ? `${zeroCats.join(", ")}: $0 recorded cost` : "";
 
             const flags = [];
             const noAsk = items.filter(i => !i.asking);
