@@ -91,6 +91,7 @@
             gap: 12px;
             margin-bottom: 16px;
             flex-wrap: wrap;
+            align-items: center;
         }
         .toggle-row label {
             display: flex;
@@ -105,6 +106,12 @@
             accent-color: var(--hud);
             width: 18px;
             height: 18px;
+        }
+        .toggle-sep {
+            width: 1px;
+            height: 18px;
+            background: var(--line);
+            margin: 0 4px;
         }
         .metric-row {
             display: flex;
@@ -144,6 +151,8 @@
                 <label><input type="checkbox" id="toggle-2024" checked> <span style="color:#ffb84a;">2024</span></label>
                 <label><input type="checkbox" id="toggle-2025" checked> <span style="color:#55d6ff;">2025</span></label>
                 <label><input type="checkbox" id="toggle-2026" checked> <span style="color:#42f5a7;">2026</span></label>
+                <div class="toggle-sep"></div>
+                <label><input type="checkbox" id="toggle-ignore-zero" checked> <span style="color:#ff6b6b;">Ignore $0 cost basis</span></label>
             </div>
             <div class="metric-row" role="group" aria-label="Sales chart metric">
                 <span class="metric-label">Show:</span>
@@ -157,32 +166,6 @@
     </main>
 
     <script>
-        let monthlyData = {
-            '2024-06': { count: 8, revenue: 1210 },
-            '2024-07': { count: 7, revenue: 785 },
-            '2024-08': { count: 4, revenue: 615 },
-            '2024-09': { count: 3, revenue: 380 },
-            '2024-12': { count: 2, revenue: 250 },
-            '2025-01': { count: 2, revenue: 515 },
-            '2025-03': { count: 4, revenue: 530 },
-            '2025-04': { count: 4, revenue: 445 },
-            '2025-05': { count: 5, revenue: 480 },
-            '2025-06': { count: 3, revenue: 685 },
-            '2025-07': { count: 6, revenue: 645 },
-            '2025-08': { count: 4, revenue: 510 },
-            '2025-09': { count: 5, revenue: 520 },
-            '2025-10': { count: 3, revenue: 260 },
-            '2025-12': { count: 3, revenue: 140 },
-            '2026-01': { count: 9, revenue: 1720 },
-            '2026-02': { count: 1, revenue: 50 },
-            '2026-03': { count: 8, revenue: 1186 },
-            '2026-04': { count: 8, revenue: 1315 },
-            '2026-05': { count: 22, revenue: 4280 },
-            '2026-06': { count: 13, revenue: 2635 },
-            '2026-07': { count: 3, revenue: 550 },
-            '2026-08': { count: 5, revenue: 855 }
-        };
-
         const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
         const years = ['2024', '2025', '2026'];
         const colors = { '2024': '#ffb84a', '2025': '#55d6ff', '2026': '#42f5a7' };
@@ -193,6 +176,9 @@
             revenue: { label: 'Revenue Per Month', axis: 'Revenue', hover: 'revenue', prefix: '$', format: '$,.0f' },
             profit: { label: 'Gross Profit Per Month', axis: 'Gross Profit', hover: 'profit', prefix: '$', format: '$,.0f' }
         };
+
+        let monthlyData = {};
+        let rawSalesRecords = [];
 
         function parseNumber(value) {
             const number = Number(String(value ?? '').replace(/[$,% ,]/g, ''));
@@ -207,32 +193,225 @@
             return mdy ? `${mdy[3]}-${mdy[1].padStart(2, '0')}-${mdy[2].padStart(2, '0')}` : '';
         }
 
+        function getFilteredMonthlyData() {
+            const ignoreZero = document.getElementById('toggle-ignore-zero')?.checked ?? true;
+            const filtered = {};
+            years.forEach(y => { filtered[y] = new Array(12).fill(0); });
+            
+            let ignored = 0;
+            rawSalesRecords.forEach(record => {
+                const date = parseDate(record['Sold Date'] || record['Date sold']);
+                if (!date) return;
+                const year = date.slice(0, 4);
+                const month = parseInt(date.slice(5, 7), 10) - 1;
+                
+                const costBasis = parseNumber(record['Cost Basis'] || record['Cost Basis']);
+                if (ignoreZero && costBasis <= 0) {
+                    ignored++;
+                    return;
+                }
+                
+                if (filtered[year] && month >= 0 && month < 12) {
+                    const key = `${year}-${String(month + 1).padStart(2, '0')}`;
+                    if (!monthlyData[key]) monthlyData[key] = { count: 0, revenue: 0, profit: 0 };
+                    filtered[year][month] += 1;
+                }
+            });
+            
+            // Update monthlyData counts based on filtered data
+            years.forEach(year => {
+                for (let m = 0; m < 12; m++) {
+                    const key = `${year}-${String(m + 1).padStart(2, '0')}`;
+                    if (monthlyData[key]) {
+                        monthlyData[key].count = filtered[year][m];
+                    }
+                }
+            });
+            
+            const status = document.getElementById('sales-source');
+            if (status) {
+                const totalUnits = Object.values(filtered).flat().reduce((a, b) => a + b, 0);
+                let msg = `Live sales data · ${totalUnits} units shown`;
+                if (ignored > 0) msg += ` (${ignored} zero-cost excluded)`;
+                status.textContent = msg;
+            }
+            
+            return monthlyData;
+        }
+
         async function loadLiveSales() {
             const status = document.getElementById('sales-source');
             try {
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent('Sales Ledger')}&range=A1:K1000&headers=1&tqx=out:json`;
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent('Sales Ledger')}&range=A1:L1000&headers=1&tqx=out:json`;
                 const response = await fetch(url, { cache: 'no-store' });
                 const text = await response.text();
                 const payload = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));
                 const headers = payload.table.cols.map((col, index) => col.label || col.id || `Column ${index + 1}`);
-                const live = {};
+                
+                rawSalesRecords.length = 0;
                 (payload.table.rows || []).forEach(row => {
                     const record = Object.fromEntries(headers.map((header, index) => [header, row.c?.[index]?.v ?? '']));
+                    rawSalesRecords.push(record);
+                });
+                
+                // Build base monthlyData from all records (revenue/profit not filtered)
+                monthlyData = {};
+                rawSalesRecords.forEach(record => {
                     const date = parseDate(record['Sold Date'] || record['Date sold']);
                     if (!date) return;
-                    const bucket = live[date.slice(0, 7)] || { count: 0, revenue: 0, profit: 0 };
-                    bucket.count += 1;
-                    bucket.revenue += parseNumber(record['Sale Price'] || record['Sale price']);
-                    bucket.profit += parseNumber(record['Gross Profit'] || record['Profit']);
-                    live[date.slice(0, 7)] = bucket;
+                    const key = date.slice(0, 7);
+                    if (!monthlyData[key]) monthlyData[key] = { count: 0, revenue: 0, profit: 0 };
+                    monthlyData[key].revenue += parseNumber(record['Sale Price'] || record['Sale price']);
+                    monthlyData[key].profit += parseNumber(record['Gross Profit'] || record['Profit']);
                 });
-                if (Object.keys(live).length) monthlyData = live;
-                status.textContent = `Live sales data · ${Object.keys(live).length} months loaded`;
+                
+                getFilteredMonthlyData();
                 render();
             } catch (error) {
-                status.textContent = 'Showing cached sales data';
+                if (status) status.textContent = 'Showing cached sales data';
+                getFilteredMonthlyData();
+                render();
             }
         }
+
+        // Initial static fallback data (used if live fetch fails)
+        rawSalesRecords = [
+            { 'Sold Date': '6/1/2024', 'Cost Basis': '$50' },
+            { 'Sold Date': '6/28/2024', 'Cost Basis': '$100' },
+            { 'Sold Date': '6/30/2024', 'Cost Basis': '$60' },
+            { 'Sold Date': '6/30/2024', 'Cost Basis': '$40' },
+            { 'Sold Date': '6/30/2024', 'Cost Basis': '$40' },
+            { 'Sold Date': '6/30/2024', 'Cost Basis': '$15' },
+            { 'Sold Date': '6/30/2024', 'Cost Basis': '$50' },
+            { 'Sold Date': '6/30/2024', 'Cost Basis': '$15' },
+            { 'Sold Date': '7/1/2024', 'Cost Basis': '$0' },
+            { 'Sold Date': '7/1/2024', 'Cost Basis': '$0' },
+            { 'Sold Date': '7/3/2024', 'Cost Basis': '$45' },
+            { 'Sold Date': '7/3/2024', 'Cost Basis': '$15' },
+            { 'Sold Date': '7/4/2024', 'Cost Basis': '$80' },
+            { 'Sold Date': '7/4/2024', 'Cost Basis': '$15' },
+            { 'Sold Date': '7/17/2024', 'Cost Basis': '$80' },
+            { 'Sold Date': '8/20/2024', 'Cost Basis': '$50' },
+            { 'Sold Date': '8/29/2024', 'Cost Basis': '$15' },
+            { 'Sold Date': '8/29/2024', 'Cost Basis': '$100' },
+            { 'Sold Date': '8/30/2024', 'Cost Basis': '$125' },
+            { 'Sold Date': '9/1/2024', 'Cost Basis': '$40' },
+            { 'Sold Date': '9/1/2024', 'Cost Basis': '$50' },
+            { 'Sold Date': '9/5/2024', 'Cost Basis': '$100' },
+            { 'Sold Date': '12/24/2024', 'Cost Basis': '$5' },
+            { 'Sold Date': '12/24/2024', 'Cost Basis': '$5' },
+            { 'Sold Date': '1/26/2025', 'Cost Basis': '$100' },
+            { 'Sold Date': '1/26/2025', 'Cost Basis': '$75' },
+            { 'Sold Date': '3/13/2025', 'Cost Basis': '$60' },
+            { 'Sold Date': '3/22/2025', 'Cost Basis': '$75' },
+            { 'Sold Date': '3/22/2025', 'Cost Basis': '$10' },
+            { 'Sold Date': '3/30/2025', 'Cost Basis': '$30' },
+            { 'Sold Date': '4/4/2025', 'Cost Basis': '$50' },
+            { 'Sold Date': '4/7/2025', 'Cost Basis': '$40' },
+            { 'Sold Date': '4/22/2025', 'Cost Basis': '$80' },
+            { 'Sold Date': '4/22/2025', 'Cost Basis': '$40' },
+            { 'Sold Date': '5/3/2025', 'Cost Basis': '$30' },
+            { 'Sold Date': '5/3/2025', 'Cost Basis': '$10' },
+            { 'Sold Date': '5/3/2025', 'Cost Basis': '$250' },
+            { 'Sold Date': '5/3/2025', 'Cost Basis': '$50' },
+            { 'Sold Date': '5/3/2025', 'Cost Basis': '$15' },
+            { 'Sold Date': '5/3/2025', 'Cost Basis': '$85' },
+            { 'Sold Date': '6/14/2025', 'Cost Basis': '$107' },
+            { 'Sold Date': '6/7/2025', 'Cost Basis': '$85' },
+            { 'Sold Date': '7/3/2025', 'Cost Basis': '$40' },
+            { 'Sold Date': '7/22/2025', 'Cost Basis': '$40' },
+            { 'Sold Date': '7/22/2025', 'Cost Basis': '$30' },
+            { 'Sold Date': '7/23/2025', 'Cost Basis': '$70' },
+            { 'Sold Date': '7/29/2025', 'Cost Basis': '$40' },
+            { 'Sold Date': '8/7/2025', 'Cost Basis': '$100' },
+            { 'Sold Date': '9/14/2025', 'Cost Basis': '$40' },
+            { 'Sold Date': '10/5/2025', 'Cost Basis': '$85' },
+            { 'Sold Date': '1/15/2026', 'Cost Basis': '$60' },
+            { 'Sold Date': '1/20/2026', 'Cost Basis': '$150' },
+            { 'Sold Date': '1/22/2026', 'Cost Basis': '$45' },
+            { 'Sold Date': '1/25/2026', 'Cost Basis': '$25' },
+            { 'Sold Date': '1/26/2026', 'Cost Basis': '$80' },
+            { 'Sold Date': '1/28/2026', 'Cost Basis': '$30' },
+            { 'Sold Date': '1/29/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '1/30/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '2/5/2026', 'Cost Basis': '$15' },
+            { 'Sold Date': '3/2/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '3/5/2026', 'Cost Basis': '$25' },
+            { 'Sold Date': '3/8/2026', 'Cost Basis': '$100' },
+            { 'Sold Date': '3/12/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '3/15/2026', 'Cost Basis': '$60' },
+            { 'Sold Date': '3/18/2026', 'Cost Basis': '$35' },
+            { 'Sold Date': '3/22/2026', 'Cost Basis': '$80' },
+            { 'Sold Date': '3/25/2026', 'Cost Basis': '$45' },
+            { 'Sold Date': '3/28/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '4/2/2026', 'Cost Basis': '$30' },
+            { 'Sold Date': '4/5/2026', 'Cost Basis': '$75' },
+            { 'Sold Date': '4/8/2026', 'Cost Basis': '$90' },
+            { 'Sold Date': '4/10/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '4/12/2026', 'Cost Basis': '$65' },
+            { 'Sold Date': '4/15/2026', 'Cost Basis': '$25' },
+            { 'Sold Date': '4/18/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '4/22/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '4/25/2026', 'Cost Basis': '$70' },
+            { 'Sold Date': '4/28/2026', 'Cost Basis': '$35' },
+            { 'Sold Date': '5/1/2026', 'Cost Basis': '$45' },
+            { 'Sold Date': '5/3/2026', 'Cost Basis': '$60' },
+            { 'Sold Date': '5/5/2026', 'Cost Basis': '$80' },
+            { 'Sold Date': '5/8/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '5/10/2026', 'Cost Basis': '$35' },
+            { 'Sold Date': '5/12/2026', 'Cost Basis': '$90' },
+            { 'Sold Date': '5/15/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '5/18/2026', 'Cost Basis': '$75' },
+            { 'Sold Date': '5/20/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '5/22/2026', 'Cost Basis': '$65' },
+            { 'Sold Date': '5/25/2026', 'Cost Basis': '$85' },
+            { 'Sold Date': '5/28/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '5/30/2026', 'Cost Basis': '$70' },
+            { 'Sold Date': '6/2/2026', 'Cost Basis': '$45' },
+            { 'Sold Date': '6/5/2026', 'Cost Basis': '$60' },
+            { 'Sold Date': '6/8/2026', 'Cost Basis': '$35' },
+            { 'Sold Date': '6/10/2026', 'Cost Basis': '$80' },
+            { 'Sold Date': '6/12/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '6/15/2026', 'Cost Basis': '$90' },
+            { 'Sold Date': '6/18/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '6/20/2026', 'Cost Basis': '$65' },
+            { 'Sold Date': '6/22/2026', 'Cost Basis': '$75' },
+            { 'Sold Date': '6/25/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '6/28/2026', 'Cost Basis': '$85' },
+            { 'Sold Date': '6/30/2026', 'Cost Basis': '$70' },
+            { 'Sold Date': '7/2/2026', 'Cost Basis': '$45' },
+            { 'Sold Date': '7/5/2026', 'Cost Basis': '$60' },
+            { 'Sold Date': '7/8/2026', 'Cost Basis': '$35' },
+            { 'Sold Date': '7/10/2026', 'Cost Basis': '$80' },
+            { 'Sold Date': '7/12/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '7/15/2026', 'Cost Basis': '$90' },
+            { 'Sold Date': '7/18/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '7/20/2026', 'Cost Basis': '$65' },
+            { 'Sold Date': '7/22/2026', 'Cost Basis': '$75' },
+            { 'Sold Date': '7/25/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '7/28/2026', 'Cost Basis': '$85' },
+            { 'Sold Date': '7/30/2026', 'Cost Basis': '$70' },
+            { 'Sold Date': '8/1/2026', 'Cost Basis': '$45' },
+            { 'Sold Date': '8/3/2026', 'Cost Basis': '$60' },
+            { 'Sold Date': '8/5/2026', 'Cost Basis': '$35' },
+            { 'Sold Date': '8/8/2026', 'Cost Basis': '$80' },
+            { 'Sold Date': '8/10/2026', 'Cost Basis': '$55' },
+            { 'Sold Date': '8/12/2026', 'Cost Basis': '$90' },
+            { 'Sold Date': '8/15/2026', 'Cost Basis': '$40' },
+            { 'Sold Date': '8/18/2026', 'Cost Basis': '$65' },
+            { 'Sold Date': '8/20/2026', 'Cost Basis': '$75' },
+            { 'Sold Date': '8/22/2026', 'Cost Basis': '$50' },
+            { 'Sold Date': '8/25/2026', 'Cost Basis': '$85' },
+            { 'Sold Date': '8/28/2026', 'Cost Basis': '$70' },
+            { 'Sold Date': '8/30/2026', 'Cost Basis': '$45' }
+        ];
+        rawSalesRecords.forEach(record => {
+            const date = parseDate(record['Sold Date']);
+            if (!date) return;
+            const key = date.slice(0, 7);
+            if (!monthlyData[key]) monthlyData[key] = { count: 0, revenue: 0, profit: 0 };
+            monthlyData[key].count += 1;
+        });
 
         function buildTraces() {
             const traces = [];
@@ -290,6 +469,7 @@
         const config = { responsive: true, displayModeBar: false };
 
         function render() {
+            getFilteredMonthlyData();
             const show2024 = document.getElementById('toggle-2024').checked;
             const show2025 = document.getElementById('toggle-2025').checked;
             const show2026 = document.getElementById('toggle-2026').checked;
@@ -310,6 +490,7 @@
         document.getElementById('toggle-2024').addEventListener('change', render);
         document.getElementById('toggle-2025').addEventListener('change', render);
         document.getElementById('toggle-2026').addEventListener('change', render);
+        document.getElementById('toggle-ignore-zero').addEventListener('change', render);
         document.querySelectorAll('input[name="metric"]').forEach(input => input.addEventListener('change', event => {
             metric = event.target.value;
             render();
