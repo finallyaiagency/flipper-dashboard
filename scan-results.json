@@ -1,8 +1,8 @@
 {
-  "scanId": "offerup-AM-20260914",
-  "timestamp": "2026-09-14T07:41:41Z",
-  "source": "offerup",
-  "listingCount": 13,
+  "scanId": "craigslist-AM-20260923",
+  "timestamp": "2026-09-23T09:05:00-04:00",
+  "source": "craigslist",
+  "listingCount": 16,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -192,11 +192,56 @@
       "daysToSell": 21,
       "source": "Craigslist",
       "discarded": 0
+    },
+    {
+      "title": "Zamp Solar 120W Portable Folding Suitcase Panel",
+      "category": "Solar Panel",
+      "askingPrice": 250,
+      "newPrice": 599,
+      "percentOfNew": 42,
+      "roi": 60,
+      "verdict": "STRONG GO",
+      "url": "https://www.craigslist.org/view/d/salisbury-zamp-solar-120w-portable/4wJTSw41qDBGpGD6WHSjp5",
+      "imageUrl": "",
+      "location": "Salisbury NC",
+      "daysToSell": 14,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Renogy 100W Portable Solar Panel Suitcase",
+      "category": "Solar Panel",
+      "askingPrice": 125,
+      "newPrice": 299,
+      "percentOfNew": 42,
+      "roi": 50,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/china-grove-renogy-100w-portable-solar/aKozDCrZXvvyXrn3D9DtQU",
+      "imageUrl": "",
+      "location": "China Grove NC",
+      "daysToSell": 14,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Kids / Youth Kayak Lightweight Sit-On-Top",
+      "category": "Kayak",
+      "askingPrice": 75,
+      "newPrice": 180,
+      "percentOfNew": 42,
+      "roi": 55,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/china-grove-kids-youth-kayak/3ADbYPTjfmSbewfA4MwZQ3",
+      "imageUrl": "",
+      "location": "Salisbury NC",
+      "daysToSell": 10,
+      "source": "Craigslist",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 0,
+    "added": 3,
     "updated": 0,
-    "total": 13
+    "total": 16
   }
 }
