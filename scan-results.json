@@ -1,8 +1,8 @@
 {
-  "scanId": "craigslist-AM-20260923",
-  "timestamp": "2026-09-23T09:05:00-04:00",
+  "scanId": "craigslist-AM-20260926",
+  "timestamp": "2026-09-26T13:03:06.062633+00:00",
   "source": "craigslist",
-  "listingCount": 16,
+  "listingCount": 22,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -237,11 +237,101 @@
       "daysToSell": 10,
       "source": "Craigslist",
       "discarded": 0
+    },
+    {
+      "title": "Kayak's for sale good condition",
+      "category": "Kayak",
+      "askingPrice": 50,
+      "newPrice": 200,
+      "percentOfNew": 25,
+      "roi": 60,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/statesville-kayaks-for-sale-good/k8U7AksJrvhZtuHtR2bkj2",
+      "imageUrl": "",
+      "location": "Statesville NC",
+      "daysToSell": 10,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Kayak",
+      "category": "Kayak",
+      "askingPrice": 100,
+      "newPrice": 200,
+      "percentOfNew": 50,
+      "roi": 60,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/liberty-kayak/hGBKnZfJtyMnFvehn1Ts9g",
+      "imageUrl": "",
+      "location": "Liberty NC",
+      "daysToSell": 10,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Kayak Fishing Gear--NEW PRICE!",
+      "category": "Kayak",
+      "askingPrice": 35,
+      "newPrice": 200,
+      "percentOfNew": 18,
+      "roi": 60,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/greensboro-kayak-fishing-gear-new-price/sftjML9sjcG1ht5bYsau3k",
+      "imageUrl": "",
+      "location": "Carriage Hills, Greensboro NC",
+      "daysToSell": 10,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Intex Explorer K2 inflatable kayak",
+      "category": "Kayak",
+      "askingPrice": 90,
+      "newPrice": 180,
+      "percentOfNew": 50,
+      "roi": 55,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/greensboro-intex-explorer-k2-inflatable/jzux9ktApzAZXebd4UrdXb",
+      "imageUrl": "",
+      "location": "Greensboro NC",
+      "daysToSell": 10,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "4Patriots 40W Laminated Monocrystalline Portable Solar Panel USB Outpu",
+      "category": "Solar Panel",
+      "askingPrice": 20,
+      "newPrice": 80,
+      "percentOfNew": 25,
+      "roi": 75,
+      "verdict": "STRONG GO",
+      "url": "https://www.craigslist.org/view/d/cary-4patriots-40w-laminated/diZsr6gAuGFCrCBqcytsgr",
+      "imageUrl": "",
+      "location": "Cary, Nc",
+      "daysToSell": 14,
+      "source": "Craigslist",
+      "discarded": 0
+    },
+    {
+      "title": "Solar panels - First Solar 117.5W",
+      "category": "Solar Panel",
+      "askingPrice": 35,
+      "newPrice": 120,
+      "percentOfNew": 29,
+      "roi": 70,
+      "verdict": "STRONG GO",
+      "url": "https://www.craigslist.org/view/d/hillsborough-solar-panels-first-solar/1uU1NX5Nfv8M3MomBUm27d",
+      "imageUrl": "",
+      "location": "Hillsborough NC",
+      "daysToSell": 14,
+      "source": "Craigslist",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 0,
-    "updated": 3,
-    "total": 16
+    "added": 6,
+    "updated": 0,
+    "total": 22
   }
 }
