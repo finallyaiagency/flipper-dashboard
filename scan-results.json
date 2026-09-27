@@ -1,8 +1,8 @@
 {
-  "scanId": "craigslist-AM-20260926",
-  "timestamp": "2026-09-26T13:03:06.062633+00:00",
+  "scanId": "craigslist-AM-20260927",
+  "timestamp": "2026-09-27T13:01:21.967492+00:00",
   "source": "craigslist",
-  "listingCount": 22,
+  "listingCount": 23,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -327,11 +327,26 @@
       "daysToSell": 14,
       "source": "Craigslist",
       "discarded": 0
+    },
+    {
+      "title": "Kayak",
+      "category": "Kayak",
+      "askingPrice": 100,
+      "newPrice": 200,
+      "percentOfNew": 50,
+      "roi": 60,
+      "verdict": "GO",
+      "url": "https://www.craigslist.org/view/d/matthews-kayak/844awT9uMNVKeBjcdtbTRp",
+      "imageUrl": "",
+      "location": "Charlotte NC",
+      "daysToSell": 10,
+      "source": "Craigslist",
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 6,
+    "added": 1,
     "updated": 0,
-    "total": 22
+    "total": 23
   }
 }
