@@ -1,8 +1,8 @@
 {
-  "scanId": "craigslist-AM-20260927",
-  "timestamp": "2026-09-27T13:01:21.967492+00:00",
-  "source": "craigslist",
-  "listingCount": 23,
+  "scanId": "ebay-comps-20260928",
+  "timestamp": "2026-09-28T14:42:08.844384+00:00",
+  "source": "ebay-sold-comps",
+  "listingCount": 26,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -342,11 +342,70 @@
       "daysToSell": 10,
       "source": "Craigslist",
       "discarded": 0
+    },
+    {
+      "title": "R4) 200W Solar Panels 2-Pack of 100W",
+      "category": "Solar Panel",
+      "askingPrice": 80,
+      "newPrice": 200,
+      "percentOfNew": 40,
+      "roi": 100,
+      "verdict": "GO",
+      "url": "https://offerup.com/explore/sck/nc/charlotte/12/4",
+      "imageUrl": "",
+      "location": "Charlotte NC",
+      "daysToSell": 7,
+      "source": "OfferUp",
+      "discarded": 0
+    },
+    {
+      "title": "SUP - eBay Sold Comps",
+      "category": "SUP",
+      "askingPrice": 0,
+      "newPrice": 150.0,
+      "percentOfNew": 0,
+      "roi": 0,
+      "verdict": "COMP DATA",
+      "url": "https://www.ebay.com/sch/i.html?_sop=13&_nkw=SUP&LH_Sold=1&LH_Complete=1",
+      "imageUrl": "",
+      "location": "eBay Sold Listings",
+      "daysToSell": 0,
+      "source": "eBay Sold Comps",
+      "compData": {
+        "medianSold": 150.0,
+        "avgSold": 150.0,
+        "minSold": 150.0,
+        "maxSold": 150.0,
+        "sampleSize": 1
+      },
+      "discarded": 0
+    },
+    {
+      "title": "Power Station - eBay Sold Comps",
+      "category": "Power Station",
+      "askingPrice": 0,
+      "newPrice": 949.99,
+      "percentOfNew": 0,
+      "roi": 0,
+      "verdict": "COMP DATA",
+      "url": "https://www.ebay.com/sch/i.html?_sop=13&_nkw=Power+Station&LH_Sold=1&LH_Complete=1",
+      "imageUrl": "",
+      "location": "eBay Sold Listings",
+      "daysToSell": 0,
+      "source": "eBay Sold Comps",
+      "compData": {
+        "medianSold": 949.99,
+        "avgSold": 774.5,
+        "minSold": 599.0,
+        "maxSold": 949.99,
+        "sampleSize": 2
+      },
+      "discarded": 0
     }
   ],
   "_mergeStats": {
-    "added": 1,
+    "added": 2,
     "updated": 0,
-    "total": 23
+    "total": 26
   }
 }
