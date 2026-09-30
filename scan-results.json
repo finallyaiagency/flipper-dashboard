@@ -1,8 +1,8 @@
 {
-  "scanId": "ebay-comps-20260928",
-  "timestamp": "2026-09-28T14:42:08.844384+00:00",
+  "scanId": "ebay-comps-20260930",
+  "timestamp": "2026-09-30T14:35:43.299471+00:00",
   "source": "ebay-sold-comps",
-  "listingCount": 26,
+  "listingCount": 28,
   "listings": [
     {
       "title": "Pelican Argo 100X 10ft Kayak",
@@ -362,7 +362,7 @@
       "title": "SUP - eBay Sold Comps",
       "category": "SUP",
       "askingPrice": 0,
-      "newPrice": 150.0,
+      "newPrice": 299.0,
       "percentOfNew": 0,
       "roi": 0,
       "verdict": "COMP DATA",
@@ -372,11 +372,11 @@
       "daysToSell": 0,
       "source": "eBay Sold Comps",
       "compData": {
-        "medianSold": 150.0,
-        "avgSold": 150.0,
-        "minSold": 150.0,
-        "maxSold": 150.0,
-        "sampleSize": 1
+        "medianSold": 299.0,
+        "avgSold": 542.65,
+        "minSold": 97.27,
+        "maxSold": 1299.0,
+        "sampleSize": 5
       },
       "discarded": 0
     },
@@ -384,7 +384,7 @@
       "title": "Power Station - eBay Sold Comps",
       "category": "Power Station",
       "askingPrice": 0,
-      "newPrice": 949.99,
+      "newPrice": 1049.0,
       "percentOfNew": 0,
       "roi": 0,
       "verdict": "COMP DATA",
@@ -394,18 +394,62 @@
       "daysToSell": 0,
       "source": "eBay Sold Comps",
       "compData": {
-        "medianSold": 949.99,
-        "avgSold": 774.5,
+        "medianSold": 1049.0,
+        "avgSold": 1649.24,
         "minSold": 599.0,
-        "maxSold": 949.99,
-        "sampleSize": 2
+        "maxSold": 3998.99,
+        "sampleSize": 4
+      },
+      "discarded": 0
+    },
+    {
+      "title": "Kayak - eBay Sold Comps",
+      "category": "Kayak",
+      "askingPrice": 0,
+      "newPrice": 199.0,
+      "percentOfNew": 0,
+      "roi": 0,
+      "verdict": "COMP DATA",
+      "url": "https://www.ebay.com/sch/i.html?_sop=13&_nkw=Kayak&LH_Sold=1&LH_Complete=1",
+      "imageUrl": "",
+      "location": "eBay Sold Listings",
+      "daysToSell": 0,
+      "source": "eBay Sold Comps",
+      "compData": {
+        "medianSold": 199.0,
+        "avgSold": 520.44,
+        "minSold": 35.0,
+        "maxSold": 2049.68,
+        "sampleSize": 11
+      },
+      "discarded": 0
+    },
+    {
+      "title": "Solar Panel - eBay Sold Comps",
+      "category": "Solar Panel",
+      "askingPrice": 0,
+      "newPrice": 294.0,
+      "percentOfNew": 0,
+      "roi": 0,
+      "verdict": "COMP DATA",
+      "url": "https://www.ebay.com/sch/i.html?_sop=13&_nkw=Solar+Panel&LH_Sold=1&LH_Complete=1",
+      "imageUrl": "",
+      "location": "eBay Sold Listings",
+      "daysToSell": 0,
+      "source": "eBay Sold Comps",
+      "compData": {
+        "medianSold": 294.0,
+        "avgSold": 323.02,
+        "minSold": 55.99,
+        "maxSold": 799.0,
+        "sampleSize": 11
       },
       "discarded": 0
     }
   ],
   "_mergeStats": {
     "added": 2,
-    "updated": 0,
-    "total": 26
+    "updated": 2,
+    "total": 28
   }
 }
