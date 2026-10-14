@@ -1452,3 +1452,35 @@ body[data-tracker-mode="inventory"] .review-grid { display:none; }
   .inventory-view-kpis div { min-width:0; }
   .mode-toggle { flex:1; }
 }
+
+
+/* Inventory item price-positioning scale */
+.inventory-detail-panel { margin:14px 0; border:1px solid var(--line); background:rgba(0,0,0,.24); padding:15px; }
+.inventory-detail-head { display:flex; justify-content:space-between; gap:14px; align-items:flex-start; }
+.inventory-detail-head h3 { margin:3px 0; }
+.inventory-detail-head p { color:var(--muted); margin:0; }
+.retail-comp-entry { display:flex; align-items:end; gap:12px; flex-wrap:wrap; margin:14px 0; }
+.retail-comp-entry label { display:grid; gap:5px; color:var(--muted); font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; }
+.retail-comp-entry input { width:210px; padding:9px; color:var(--ink); background:var(--panel); border:1px solid var(--line); }
+.retail-comp-entry small { color:var(--muted); padding-bottom:10px; }
+.inventory-price-scale { position:relative; display:grid; grid-template-columns:35% 30% 35%; height:154px; overflow:hidden; border:1px solid var(--line); }
+.inventory-zone { padding:10px; font-size:.72rem; text-transform:uppercase; letter-spacing:.08em; }
+.inventory-zone span, .inventory-zone small { display:block; }
+.inventory-zone small { margin-top:4px; color:rgba(255,255,255,.6); text-transform:none; letter-spacing:0; }
+.inventory-buy-zone { background:rgba(244,88,88,.15); }
+.inventory-hold-zone { background:rgba(243,185,64,.15); }
+.inventory-sell-zone { background:rgba(51,223,151,.15); text-align:right; }
+.inventory-price-markers { position:absolute; inset:0; }
+.inventory-marker { position:absolute; bottom:0; width:1px; height:72px; background:currentColor; color:var(--ink); }
+.inventory-marker b, .inventory-marker strong { position:absolute; left:5px; white-space:nowrap; font-size:.7rem; }
+.inventory-marker b { bottom:47px; color:currentColor; }
+.inventory-marker strong { bottom:28px; color:var(--ink); }
+.inventory-marker.cost-marker { color:#ff8585; }
+.inventory-marker.suggested-marker { color:#ffcc5c; height:95px; }
+.inventory-marker.ask-marker { color:var(--hud); height:118px; }
+.inventory-marker.seller-marker { color:var(--cyan); height:80px; }
+.inventory-marker.retail-marker { color:#e39dff; height:135px; }
+.inventory-price-legend { display:flex; flex-wrap:wrap; gap:10px 16px; color:var(--muted); font-size:.76rem; margin-top:8px; }
+.inventory-card[role="button"] { cursor:pointer; }
+.inventory-card[role="button"]:focus-visible { outline:2px solid var(--hud); outline-offset:2px; }
+@media (max-width:700px) { .inventory-detail-head { flex-direction:column; } .inventory-price-scale { height:170px; } .inventory-marker b { white-space:normal; width:72px; } }
