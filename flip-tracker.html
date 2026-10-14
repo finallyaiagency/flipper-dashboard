@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="flip-tracker.css?v=20260530-1">
+    <link rel="stylesheet" href="flip-tracker.css?v=20261014-1">
     <link rel="stylesheet" href="scan-feed.css?v=20260907-1">
 </head>
 <body>
@@ -21,6 +21,35 @@
     </header>
 
     <main class="cockpit-shell">
+
+        <section class="tracker-mode-bar" aria-label="Tracker mode">
+            <div>
+                <span class="eyebrow">View</span>
+                <h2>Opportunities or current inventory</h2>
+            </div>
+            <div class="tracker-mode-toggle" role="group" aria-label="Tracker view">
+                <button type="button" class="mode-toggle active" data-tracker-mode="opportunities">Opportunities</button>
+                <button type="button" class="mode-toggle" data-tracker-mode="inventory">Current Inventory</button>
+            </div>
+        </section>
+
+        <section id="inventory-view" class="inventory-view" hidden aria-live="polite">
+            <div class="inventory-view-head">
+                <div>
+                    <span class="eyebrow">Groundbnb Store</span>
+                    <h2>Current inventory</h2>
+                    <p id="inventory-source-status">Loading active inventory…</p>
+                </div>
+                <div class="inventory-view-kpis">
+                    <div><span>Active items</span><strong id="inventory-active-count">—</strong></div>
+                    <div><span>Cost basis</span><strong id="inventory-cost-basis">—</strong></div>
+                    <div><span>Asking value</span><strong id="inventory-asking-value">—</strong></div>
+                </div>
+            </div>
+            <p class="inventory-note">“New price” is a live lookup, not an invented estimate. Use the link on each item to compare your asking price with current new-retail listings.</p>
+            <div id="inventory-grid" class="inventory-grid"></div>
+        </section>
+
         <section class="scan-feed-section" id="scan-feed-section" aria-label="Daily scan feed"></section>
 
         <section class="mission-bar" aria-label="Tracker summary">
@@ -232,6 +261,6 @@
     <script src="scan-db.js?v=20260907-1"></script>
     <script src="scan-feed.js?v=20260907-1"></script>
     <script src="flip-tracker-data.js?v=20260530-1"></script>
-    <script src="flip-tracker.js?v=20260530-1"></script>
+    <script src="flip-tracker.js?v=20261014-1"></script>
 </body>
 </html>
