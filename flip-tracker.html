@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="flip-tracker.css?v=20261014-1">
+    <link rel="stylesheet" href="flip-tracker.css?v=20261014-2">
     <link rel="stylesheet" href="scan-feed.css?v=20260907-1">
 </head>
 <body>
@@ -47,6 +47,29 @@
                 </div>
             </div>
             <p class="inventory-note">“New price” is a live lookup, not an invented estimate. Use the link on each item to compare your asking price with current new-retail listings.</p>
+
+            <section id="inventory-detail-panel" class="inventory-detail-panel" hidden aria-live="polite">
+                <div class="inventory-detail-head">
+                    <div>
+                        <span class="eyebrow">Inventory price positioning</span>
+                        <h3 id="inventory-detail-title">Select an inventory item</h3>
+                        <p id="inventory-detail-meta"></p>
+                    </div>
+                    <a id="inventory-detail-new-link" class="inventory-link" target="_blank" rel="noopener">Look up current new price ↗</a>
+                </div>
+                <div class="retail-comp-entry">
+                    <label for="inventory-retail-price"><span>Current new / retail price</span><input id="inventory-retail-price" type="number" min="0" step="1" inputmode="decimal" placeholder="Enter verified new price"></label>
+                    <small>Saved in this browser for this item. The graph updates immediately.</small>
+                </div>
+                <div class="inventory-price-scale" aria-label="Price positioning scale">
+                    <div class="inventory-zone inventory-buy-zone"><span>Buy zone</span><small>Cost basis / capital at risk</small></div>
+                    <div class="inventory-zone inventory-hold-zone"><span>Hold zone</span><small>Suggested asking range</small></div>
+                    <div class="inventory-zone inventory-sell-zone"><span>Sell zone</span><small>Ask vs. current new retail</small></div>
+                    <div id="inventory-price-markers" class="inventory-price-markers"></div>
+                </div>
+                <div id="inventory-price-legend" class="inventory-price-legend"></div>
+            </section>
+
             <div id="inventory-grid" class="inventory-grid"></div>
         </section>
 
@@ -261,6 +284,6 @@
     <script src="scan-db.js?v=20260907-1"></script>
     <script src="scan-feed.js?v=20260907-1"></script>
     <script src="flip-tracker-data.js?v=20260530-1"></script>
-    <script src="flip-tracker.js?v=20261014-1"></script>
+    <script src="flip-tracker.js?v=20261014-2"></script>
 </body>
 </html>
