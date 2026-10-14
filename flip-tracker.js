@@ -119,6 +119,7 @@
         inventoryDetailMeta: document.getElementById("inventory-detail-meta"),
         inventoryDetailNewLink: document.getElementById("inventory-detail-new-link"),
         inventoryRetailPrice: document.getElementById("inventory-retail-price"),
+        inventoryRetailContext: document.getElementById("inventory-retail-context"),
         inventoryPriceMarkers: document.getElementById("inventory-price-markers"),
         inventoryPriceLegend: document.getElementById("inventory-price-legend")
     };
@@ -705,12 +706,22 @@
         }).filter((record) => ["active", "inventory", "listed"].includes(record.status.toLowerCase()));
     }
 
+    const RETAIL_PRICE_REFERENCES = {
+        "GB-0107": {
+            price: 929.99,
+            label: "Original MSRP (model is sold out)",
+            source: "Aquaglide official product page"
+        }
+    };
+
     function getRetailComps() {
         try { return JSON.parse(localStorage.getItem("flip-tracker:retail-comps:v1") || "{}"); } catch (_e) { return {}; }
     }
 
-    function retailCompFor(record) {
-        return toInventoryNumber(getRetailComps()[record.id]);
+    function retailReferenceFor(record) {
+        const savedValue = toInventoryNumber(getRetailComps()[record.id]);
+        if (savedValue > 0) return { price: savedValue, label: "Saved new-price reference", source: "This browser" };
+        return RETAIL_PRICE_REFERENCES[record.id] || null;
     }
 
     function setRetailComp(record, value) {
@@ -749,23 +760,34 @@
     function renderInventoryDetail() {
         const record = inventoryRecords.find((item) => item.id === selectedInventoryId);
         if (!record) { els.inventoryDetail.hidden = true; return; }
-        const retail = retailCompFor(record);
-        const values = [record.cost, record.currentAsk, record.suggestedAsk, retail].filter((value) => value > 0);
-        const max = Math.max(100, ...values) * 1.12;
-        const pos = (value) => Math.max(2, Math.min(98, (value / max) * 100));
+        const reference = retailReferenceFor(record);
+        const retail = reference?.price || 0;
+        const toPercentOfNew = (value) => retail > 0 ? (value / retail) * 100 : 0;
+        const pos = (value) => Math.max(2, Math.min(100, toPercentOfNew(value)));
         const markers = [
             [record.cost, "Paid cost", "cost-marker"],
             [record.suggestedAsk, "Suggested ask", "suggested-marker"],
             [record.currentAsk, "Your ask", "ask-marker"],
-            [retail, "New / retail", "retail-marker"]
+            [retail, "New-price anchor", "retail-marker"]
         ].filter(([value]) => value > 0);
         els.inventoryDetail.hidden = false;
         els.inventoryDetailTitle.textContent = record.name;
         els.inventoryDetailMeta.textContent = record.category + " · " + record.id + " · " + record.daysHeld + " days held";
         els.inventoryDetailNewLink.href = inventorySearchLink(record);
         els.inventoryRetailPrice.value = retail || "";
-        els.inventoryPriceMarkers.innerHTML = markers.map(([value, label, tone]) => `<span class="inventory-marker ${tone}" style="left:${pos(value)}%"><b>${escapeHtml(label)}</b><strong>${escapeHtml(money(value))}</strong></span>`).join("");
-        els.inventoryPriceLegend.innerHTML = `<span>Scale tops out at ${escapeHtml(money(max))}</span><span>Buy zone = cost basis</span><span>Sell zone = pricing above your suggested ask</span>`;
+        els.inventoryRetailContext.textContent = reference
+            ? reference.label + " · " + reference.source + " · This is the 100% anchor."
+            : "No new-price reference yet. Enter a verified current price or an estimated original MSRP to enable the 100% anchor.";
+        if (!retail) {
+            els.inventoryPriceMarkers.innerHTML = "";
+            els.inventoryPriceLegend.innerHTML = "<span>Add a new-price reference to compare this item on a percent-of-new scale.</span>";
+            return;
+        }
+        els.inventoryPriceMarkers.innerHTML = markers.map(([value, label, tone]) => {
+            const percent = Math.round(toPercentOfNew(value));
+            return `<span class="inventory-marker ${tone}" style="left:${pos(value)}%"><b>${escapeHtml(label)}</b><strong>${escapeHtml(money(value))} · ${percent}%</strong></span>`;
+        }).join("");
+        els.inventoryPriceLegend.innerHTML = `<span>0%</span><span>50% of new</span><span>100% new = ${escapeHtml(money(retail))}</span>`;
     }
 
     async function refreshInventory() {
