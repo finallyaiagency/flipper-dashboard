@@ -31,6 +31,12 @@
 
     const strongGoTopTwoIds = computeStrongGoTopTwoIds(records);
 
+    const INVENTORY_SHEET = "Inventory Register";
+    const INVENTORY_CACHE_KEY = "flip-tracker:inventory:v1";
+    let inventoryRecords = [];
+    let trackerMode = "opportunities";
+
+
     const state = {
         filtered: [],
         selectedId: records[0] ? records[0].id : null
@@ -99,7 +105,14 @@
         cockpitPersonalFit: document.getElementById("cockpit-personal-fit"),
         cockpitRiskNotes: document.getElementById("cockpit-risk-notes"),
         useSelectedRecord: document.getElementById("use-selected-record"),
-        copyCockpitPrompt: document.getElementById("copy-cockpit-prompt")
+        copyCockpitPrompt: document.getElementById("copy-cockpit-prompt"),
+        modeButtons: Array.from(document.querySelectorAll("[data-tracker-mode]")),
+        inventoryView: document.getElementById("inventory-view"),
+        inventoryGrid: document.getElementById("inventory-grid"),
+        inventoryStatus: document.getElementById("inventory-source-status"),
+        inventoryCount: document.getElementById("inventory-active-count"),
+        inventoryCost: document.getElementById("inventory-cost-basis"),
+        inventoryAsking: document.getElementById("inventory-asking-value")
     };
 
     function get(values, key) {
@@ -648,6 +661,102 @@
         return escapeHtml(value);
     }
 
+
+    function toInventoryNumber(value) {
+        const parsed = Number(String(value == null ? "" : value).replace(/[$,]/g, ""));
+        return Number.isFinite(parsed) ? parsed : 0;
+    }
+
+    function inventoryRecordFromRow(headers, row, index) {
+        const value = (name) => row[headers.indexOf(name)] ?? "";
+        const currentAsk = toInventoryNumber(value("Current Ask")) || toInventoryNumber(value("Initial Ask"));
+        return {
+            id: String(value("Asset ID") || index),
+            name: String(value("Item Name") || "Untitled item"),
+            category: String(value("Category") || "Other"),
+            status: String(value("Status") || ""),
+            cost: toInventoryNumber(value("Cost Basis")),
+            currentAsk,
+            suggestedAsk: toInventoryNumber(value("Recommended Ask")),
+            sellerAsk: toInventoryNumber(value("Seller Asking")),
+            daysHeld: toInventoryNumber(value("Days Held")),
+            listingUrl: String(value("Listing URL") || ""),
+            pricingAction: String(value("Pricing Action") || ""),
+            notes: String(value("Notes") || "")
+        };
+    }
+
+    function parseGvizInventory(text) {
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
+        if (start < 0 || end <= start) throw new Error("Unexpected inventory response");
+        const table = JSON.parse(text.slice(start, end + 1)).table;
+        const headers = (table.cols || []).map((column, index) => String(column.label || column.id || "Column "+(index + 1)).trim());
+        return (table.rows || []).map((row, index) => {
+            const values = headers.map((_, colIndex) => row.c?.[colIndex]?.f || row.c?.[colIndex]?.v || "");
+            return inventoryRecordFromRow(headers, values, index);
+        }).filter((record) => ["active", "inventory", "listed"].includes(record.status.toLowerCase()));
+    }
+
+    function inventorySearchLink(record) {
+        return "https://www.google.com/search?q=" + encodeURIComponent(record.name + " new price");
+    }
+
+    function renderInventoryView() {
+        const totalCost = inventoryRecords.reduce((sum, record) => sum + record.cost, 0);
+        const totalAsk = inventoryRecords.reduce((sum, record) => sum + record.currentAsk, 0);
+        els.inventoryCount.textContent = inventoryRecords.length.toLocaleString();
+        els.inventoryCost.textContent = money(totalCost);
+        els.inventoryAsking.textContent = money(totalAsk);
+        if (!inventoryRecords.length) {
+            els.inventoryGrid.innerHTML = '<div class="empty-state">No active inventory was returned from Groundbnb Store.</div>';
+            return;
+        }
+        const items = [...inventoryRecords].sort((a, b) => b.daysHeld - a.daysHeld || a.name.localeCompare(b.name));
+        els.inventoryGrid.innerHTML = items.map((record) => {
+            const askRatio = record.currentAsk > 0 && record.sellerAsk > 0 ? Math.round((record.currentAsk / record.sellerAsk) * 100) : null;
+            const listing = record.listingUrl ? '<a class="inventory-link secondary" href="'+escapeAttr(record.listingUrl)+'" target="_blank" rel="noopener">Open listing</a>' : "";
+            return '<article class="inventory-card">'
+                + '<div class="inventory-card-top"><div><span class="inventory-category">'+escapeHtml(record.category)+'</span><h3>'+escapeHtml(record.name)+'</h3><p>'+escapeHtml(record.id)+' · '+escapeHtml(String(record.daysHeld))+' days held</p></div><span class="inventory-status">'+escapeHtml(record.status)+'</span></div>'
+                + '<div class="inventory-metrics"><div><span>Cost</span><strong>'+escapeHtml(money(record.cost))+'</strong></div><div><span>Your ask</span><strong>'+escapeHtml(money(record.currentAsk))+'</strong></div><div><span>Suggested ask</span><strong>'+escapeHtml(money(record.suggestedAsk || null))+'</strong></div><div><span>Seller ask</span><strong>'+escapeHtml(money(record.sellerAsk || null))+'</strong></div></div>'
+                + '<div class="inventory-actions"><a class="inventory-link" href="'+inventorySearchLink(record)+'" target="_blank" rel="noopener">Compare current new price ↗</a>'+listing+(askRatio ? '<span class="ask-ratio">Your ask is '+askRatio+'% of seller ask</span>' : '')+'</div>'
+                + (record.pricingAction ? '<p class="inventory-action">Pricing action: '+escapeHtml(record.pricingAction)+'</p>' : '') + '</article>';
+        }).join("");
+    }
+
+    async function refreshInventory() {
+        const url = "https://docs.google.com/spreadsheets/d/12TELzT2bzIxdry3pyLvSv3hdWJpkdvGC25aSlvsBq94/gviz/tq?sheet=" + encodeURIComponent(INVENTORY_SHEET) + "&range=A1:AB1000&headers=1&tqx=out:json";
+        try {
+            const response = await fetch(url, { cache: "no-store" });
+            if (!response.ok) throw new Error("Inventory HTTP " + response.status);
+            inventoryRecords = parseGvizInventory(await response.text());
+            try { localStorage.setItem(INVENTORY_CACHE_KEY, JSON.stringify(inventoryRecords)); } catch (_e) {}
+            els.inventoryStatus.textContent = "Live active inventory from Groundbnb Store";
+        } catch (error) {
+            try { inventoryRecords = JSON.parse(localStorage.getItem(INVENTORY_CACHE_KEY) || "[]"); } catch (_e) { inventoryRecords = []; }
+            els.inventoryStatus.textContent = inventoryRecords.length ? "Showing last cached Groundbnb inventory" : "Could not load inventory: " + error.message;
+        }
+        renderInventoryView();
+    }
+
+    function setTrackerMode(mode) {
+        trackerMode = mode === "inventory" ? "inventory" : "opportunities";
+        document.body.dataset.trackerMode = trackerMode;
+        els.inventoryView.hidden = trackerMode !== "inventory";
+        els.modeButtons.forEach((button) => {
+            const active = button.dataset.trackerMode === trackerMode;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+        });
+        if (trackerMode === "inventory" && !inventoryRecords.length) void refreshInventory();
+    }
+
+    function initInventoryView() {
+        els.modeButtons.forEach((button) => button.addEventListener("click", () => setTrackerMode(button.dataset.trackerMode)));
+        setTrackerMode("opportunities");
+        void refreshInventory();
+    }
+
     function bindEvents() {
         [els.search, els.location, els.verdict, els.kpi, els.sort].forEach((el) => {
             el.addEventListener("input", applyFilters);
@@ -718,4 +827,5 @@
     bindEvents();
     applyFilters();
     analyzeCockpitCandidate();
+    initInventoryView();
 })();
