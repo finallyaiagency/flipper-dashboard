@@ -1410,3 +1410,45 @@ details[open] summary::after {
         font-size: 0.9rem;
     }
 }
+
+
+/* Inventory mode */
+.tracker-mode-bar, .inventory-view { margin: 16px 0; }
+.tracker-mode-bar, .inventory-view-head { display:flex; justify-content:space-between; gap:16px; align-items:center; }
+.tracker-mode-bar h2, .inventory-view h2 { margin:2px 0 0; font-size:1.15rem; }
+.tracker-mode-toggle { display:flex; background:rgba(0,0,0,.25); border:1px solid var(--line); padding:4px; border-radius:12px; }
+.mode-toggle { border:0; background:transparent; color:var(--muted); font:inherit; font-weight:800; padding:10px 14px; border-radius:8px; cursor:pointer; }
+.mode-toggle.active { color:#092019; background:var(--hud); }
+.inventory-view { border:1px solid var(--line); background:rgba(8,18,16,.78); padding:18px; border-radius:14px; }
+.inventory-view-head p, .inventory-note { color:var(--muted); margin:6px 0 0; }
+.inventory-view-kpis { display:flex; gap:8px; }
+.inventory-view-kpis div { border:1px solid var(--line); padding:9px 12px; min-width:104px; }
+.inventory-view-kpis span, .inventory-metrics span { display:block; color:var(--muted); font-size:.68rem; text-transform:uppercase; letter-spacing:.08em; }
+.inventory-view-kpis strong { color:var(--hud); font-size:1.1rem; }
+.inventory-note { border-left:3px solid var(--amber); padding-left:10px; }
+.inventory-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(310px,1fr)); gap:12px; margin-top:14px; }
+.inventory-card { border:1px solid var(--line); padding:14px; background:rgba(0,0,0,.18); }
+.inventory-card-top { display:flex; justify-content:space-between; gap:10px; }
+.inventory-card h3 { margin:4px 0; font-size:1rem; line-height:1.25; }
+.inventory-card p { margin:0; color:var(--muted); font-size:.8rem; }
+.inventory-category, .inventory-status { color:var(--cyan); font-size:.7rem; font-weight:800; text-transform:uppercase; letter-spacing:.08em; }
+.inventory-status { color:var(--hud); white-space:nowrap; }
+.inventory-metrics { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:12px; }
+.inventory-metrics div { background:rgba(255,255,255,.04); padding:8px; }
+.inventory-metrics strong { display:block; margin-top:2px; }
+.inventory-actions { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:12px; }
+.inventory-link { color:var(--hud); font-weight:800; text-decoration:none; }
+.inventory-link.secondary { color:var(--cyan); }
+.ask-ratio { color:var(--muted); font-size:.76rem; }
+.inventory-action { margin-top:10px !important; color:var(--amber) !important; }
+body[data-tracker-mode="inventory"] .scan-feed-section,
+body[data-tracker-mode="inventory"] .mission-bar,
+body[data-tracker-mode="inventory"] .private-cockpit,
+body[data-tracker-mode="inventory"] .control-deck,
+body[data-tracker-mode="inventory"] .review-grid { display:none; }
+@media (max-width:700px) {
+  .tracker-mode-bar, .inventory-view-head { align-items:stretch; flex-direction:column; }
+  .inventory-view-kpis { display:grid; grid-template-columns:repeat(3,1fr); }
+  .inventory-view-kpis div { min-width:0; }
+  .mode-toggle { flex:1; }
+}
