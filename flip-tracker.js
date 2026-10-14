@@ -34,6 +34,7 @@
     const INVENTORY_SHEET = "Inventory Register";
     const INVENTORY_CACHE_KEY = "flip-tracker:inventory:v1";
     let inventoryRecords = [];
+    let selectedInventoryId = null;
     let trackerMode = "opportunities";
 
 
@@ -112,7 +113,14 @@
         inventoryStatus: document.getElementById("inventory-source-status"),
         inventoryCount: document.getElementById("inventory-active-count"),
         inventoryCost: document.getElementById("inventory-cost-basis"),
-        inventoryAsking: document.getElementById("inventory-asking-value")
+        inventoryAsking: document.getElementById("inventory-asking-value"),
+        inventoryDetail: document.getElementById("inventory-detail-panel"),
+        inventoryDetailTitle: document.getElementById("inventory-detail-title"),
+        inventoryDetailMeta: document.getElementById("inventory-detail-meta"),
+        inventoryDetailNewLink: document.getElementById("inventory-detail-new-link"),
+        inventoryRetailPrice: document.getElementById("inventory-retail-price"),
+        inventoryPriceMarkers: document.getElementById("inventory-price-markers"),
+        inventoryPriceLegend: document.getElementById("inventory-price-legend")
     };
 
     function get(values, key) {
@@ -698,6 +706,20 @@
         }).filter((record) => ["active", "inventory", "listed"].includes(record.status.toLowerCase()));
     }
 
+    function getRetailComps() {
+        try { return JSON.parse(localStorage.getItem("flip-tracker:retail-comps:v1") || "{}"); } catch (_e) { return {}; }
+    }
+
+    function retailCompFor(record) {
+        return toInventoryNumber(getRetailComps()[record.id]);
+    }
+
+    function setRetailComp(record, value) {
+        const all = getRetailComps();
+        if (value > 0) all[record.id] = value; else delete all[record.id];
+        try { localStorage.setItem("flip-tracker:retail-comps:v1", JSON.stringify(all)); } catch (_e) {}
+    }
+
     function inventorySearchLink(record) {
         return "https://www.google.com/search?q=" + encodeURIComponent(record.name + " new price");
     }
@@ -716,12 +738,37 @@
         els.inventoryGrid.innerHTML = items.map((record) => {
             const askRatio = record.currentAsk > 0 && record.sellerAsk > 0 ? Math.round((record.currentAsk / record.sellerAsk) * 100) : null;
             const listing = record.listingUrl ? '<a class="inventory-link secondary" href="'+escapeAttr(record.listingUrl)+'" target="_blank" rel="noopener">Open listing</a>' : "";
-            return '<article class="inventory-card">'
+            return '<article class="inventory-card" tabindex="0" role="button" data-inventory-id="'+escapeAttr(record.id)+'" aria-label="Open price positioning for '+escapeAttr(record.name)+'">'
                 + '<div class="inventory-card-top"><div><span class="inventory-category">'+escapeHtml(record.category)+'</span><h3>'+escapeHtml(record.name)+'</h3><p>'+escapeHtml(record.id)+' · '+escapeHtml(String(record.daysHeld))+' days held</p></div><span class="inventory-status">'+escapeHtml(record.status)+'</span></div>'
                 + '<div class="inventory-metrics"><div><span>Cost</span><strong>'+escapeHtml(money(record.cost))+'</strong></div><div><span>Your ask</span><strong>'+escapeHtml(money(record.currentAsk))+'</strong></div><div><span>Suggested ask</span><strong>'+escapeHtml(money(record.suggestedAsk || null))+'</strong></div><div><span>Seller ask</span><strong>'+escapeHtml(money(record.sellerAsk || null))+'</strong></div></div>'
                 + '<div class="inventory-actions"><a class="inventory-link" href="'+inventorySearchLink(record)+'" target="_blank" rel="noopener">Compare current new price ↗</a>'+listing+(askRatio ? '<span class="ask-ratio">Your ask is '+askRatio+'% of seller ask</span>' : '')+'</div>'
                 + (record.pricingAction ? '<p class="inventory-action">Pricing action: '+escapeHtml(record.pricingAction)+'</p>' : '') + '</article>';
         }).join("");
+        if (!selectedInventoryId || !inventoryRecords.some((record) => record.id === selectedInventoryId)) selectedInventoryId = inventoryRecords[0]?.id || null;
+        renderInventoryDetail();
+    }
+
+    function renderInventoryDetail() {
+        const record = inventoryRecords.find((item) => item.id === selectedInventoryId);
+        if (!record) { els.inventoryDetail.hidden = true; return; }
+        const retail = retailCompFor(record);
+        const values = [record.cost, record.currentAsk, record.suggestedAsk, record.sellerAsk, retail].filter((value) => value > 0);
+        const max = Math.max(100, ...values) * 1.12;
+        const pos = (value) => Math.max(2, Math.min(98, (value / max) * 100));
+        const markers = [
+            [record.cost, "Paid cost", "cost-marker"],
+            [record.suggestedAsk, "Suggested ask", "suggested-marker"],
+            [record.currentAsk, "Your ask", "ask-marker"],
+            [record.sellerAsk, "Seller ask", "seller-marker"],
+            [retail, "New / retail", "retail-marker"]
+        ].filter(([value]) => value > 0);
+        els.inventoryDetail.hidden = false;
+        els.inventoryDetailTitle.textContent = record.name;
+        els.inventoryDetailMeta.textContent = record.category + " · " + record.id + " · " + record.daysHeld + " days held";
+        els.inventoryDetailNewLink.href = inventorySearchLink(record);
+        els.inventoryRetailPrice.value = retail || "";
+        els.inventoryPriceMarkers.innerHTML = markers.map(([value, label, tone]) => `<span class="inventory-marker ${tone}" style="left:${pos(value)}%"><b>${escapeHtml(label)}</b><strong>${escapeHtml(money(value))}</strong></span>`).join("");
+        els.inventoryPriceLegend.innerHTML = `<span>Scale tops out at ${escapeHtml(money(max))}</span><span>Buy zone = cost basis</span><span>Sell zone = pricing above your suggested ask</span>`;
     }
 
     async function refreshInventory() {
@@ -753,6 +800,28 @@
 
     function initInventoryView() {
         els.modeButtons.forEach((button) => button.addEventListener("click", () => setTrackerMode(button.dataset.trackerMode)));
+        els.inventoryGrid.addEventListener("click", (event) => {
+            if (event.target.closest("a")) return;
+            const card = event.target.closest("[data-inventory-id]");
+            if (!card) return;
+            selectedInventoryId = card.dataset.inventoryId;
+            renderInventoryDetail();
+            els.inventoryDetail.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        });
+        els.inventoryGrid.addEventListener("keydown", (event) => {
+            if (!["Enter", " "].includes(event.key)) return;
+            const card = event.target.closest("[data-inventory-id]");
+            if (!card) return;
+            event.preventDefault();
+            selectedInventoryId = card.dataset.inventoryId;
+            renderInventoryDetail();
+        });
+        els.inventoryRetailPrice.addEventListener("change", () => {
+            const record = inventoryRecords.find((item) => item.id === selectedInventoryId);
+            if (!record) return;
+            setRetailComp(record, toInventoryNumber(els.inventoryRetailPrice.value));
+            renderInventoryDetail();
+        });
         setTrackerMode("opportunities");
         void refreshInventory();
     }
