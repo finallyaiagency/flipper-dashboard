@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="flip-tracker.css?v=20261014-4">
+    <link rel="stylesheet" href="flip-tracker-v5.css">
     <link rel="stylesheet" href="scan-feed.css?v=20260907-1">
 </head>
 <body>
@@ -58,8 +58,8 @@
                     <a id="inventory-detail-new-link" class="inventory-link" target="_blank" rel="noopener">Look up current new price ↗</a>
                 </div>
                 <div class="retail-comp-entry">
-                    <label for="inventory-retail-price"><span>Current new / retail price</span><input id="inventory-retail-price" type="number" min="0" step="1" inputmode="decimal" placeholder="Enter verified new price"></label>
-                    <small>Saved in this browser for this item. The graph updates immediately.</small>
+                    <label for="inventory-retail-price"><span>New-price anchor (current or original MSRP)</span><input id="inventory-retail-price" type="number" min="0" step="1" inputmode="decimal" placeholder="Enter verified new price"></label>
+                    <small id="inventory-retail-context">Use a verified current price, or an estimated original MSRP when discontinued. The graph updates immediately.</small>
                 </div>
                 <div class="inventory-price-scale" aria-label="Price positioning scale">
                     <div class="inventory-zone inventory-buy-zone"><span>Buy zone</span><small>Cost basis / capital at risk</small></div>
@@ -284,6 +284,6 @@
     <script src="scan-db.js?v=20260907-1"></script>
     <script src="scan-feed.js?v=20260907-1"></script>
     <script src="flip-tracker-data.js?v=20260530-1"></script>
-    <script src="flip-tracker.js?v=20261014-4"></script>
+    <script src="flip-tracker-v5.js"></script>
 </body>
 </html>
