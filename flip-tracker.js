@@ -686,7 +686,6 @@
             cost: toInventoryNumber(value("Cost Basis")),
             currentAsk,
             suggestedAsk: toInventoryNumber(value("Recommended Ask")),
-            sellerAsk: toInventoryNumber(value("Seller Asking")),
             daysHeld: toInventoryNumber(value("Days Held")),
             listingUrl: String(value("Listing URL") || ""),
             pricingAction: String(value("Pricing Action") || ""),
@@ -736,12 +735,11 @@
         }
         const items = [...inventoryRecords].sort((a, b) => b.daysHeld - a.daysHeld || a.name.localeCompare(b.name));
         els.inventoryGrid.innerHTML = items.map((record) => {
-            const askRatio = record.currentAsk > 0 && record.sellerAsk > 0 ? Math.round((record.currentAsk / record.sellerAsk) * 100) : null;
             const listing = record.listingUrl ? '<a class="inventory-link secondary" href="'+escapeAttr(record.listingUrl)+'" target="_blank" rel="noopener">Open listing</a>' : "";
             return '<article class="inventory-card" tabindex="0" role="button" data-inventory-id="'+escapeAttr(record.id)+'" aria-label="Open price positioning for '+escapeAttr(record.name)+'">'
                 + '<div class="inventory-card-top"><div><span class="inventory-category">'+escapeHtml(record.category)+'</span><h3>'+escapeHtml(record.name)+'</h3><p>'+escapeHtml(record.id)+' · '+escapeHtml(String(record.daysHeld))+' days held</p></div><span class="inventory-status">'+escapeHtml(record.status)+'</span></div>'
-                + '<div class="inventory-metrics"><div><span>Cost</span><strong>'+escapeHtml(money(record.cost))+'</strong></div><div><span>Your ask</span><strong>'+escapeHtml(money(record.currentAsk))+'</strong></div><div><span>Suggested ask</span><strong>'+escapeHtml(money(record.suggestedAsk || null))+'</strong></div><div><span>Seller ask</span><strong>'+escapeHtml(money(record.sellerAsk || null))+'</strong></div></div>'
-                + '<div class="inventory-actions"><a class="inventory-link" href="'+inventorySearchLink(record)+'" target="_blank" rel="noopener">Compare current new price ↗</a>'+listing+(askRatio ? '<span class="ask-ratio">Your ask is '+askRatio+'% of seller ask</span>' : '')+'</div>'
+                + '<div class="inventory-metrics"><div><span>Cost</span><strong>'+escapeHtml(money(record.cost))+'</strong></div><div><span>Your ask</span><strong>'+escapeHtml(money(record.currentAsk))+'</strong></div><div><span>Suggested ask</span><strong>'+escapeHtml(money(record.suggestedAsk || null))+'</strong></div></div>'
+                + '<div class="inventory-actions"><a class="inventory-link" href="'+inventorySearchLink(record)+'" target="_blank" rel="noopener">Compare current new price ↗</a>'+listing+'</div>'
                 + (record.pricingAction ? '<p class="inventory-action">Pricing action: '+escapeHtml(record.pricingAction)+'</p>' : '') + '</article>';
         }).join("");
         if (!selectedInventoryId || !inventoryRecords.some((record) => record.id === selectedInventoryId)) selectedInventoryId = inventoryRecords[0]?.id || null;
@@ -752,14 +750,13 @@
         const record = inventoryRecords.find((item) => item.id === selectedInventoryId);
         if (!record) { els.inventoryDetail.hidden = true; return; }
         const retail = retailCompFor(record);
-        const values = [record.cost, record.currentAsk, record.suggestedAsk, record.sellerAsk, retail].filter((value) => value > 0);
+        const values = [record.cost, record.currentAsk, record.suggestedAsk, retail].filter((value) => value > 0);
         const max = Math.max(100, ...values) * 1.12;
         const pos = (value) => Math.max(2, Math.min(98, (value / max) * 100));
         const markers = [
             [record.cost, "Paid cost", "cost-marker"],
             [record.suggestedAsk, "Suggested ask", "suggested-marker"],
             [record.currentAsk, "Your ask", "ask-marker"],
-            [record.sellerAsk, "Seller ask", "seller-marker"],
             [retail, "New / retail", "retail-marker"]
         ].filter(([value]) => value > 0);
         els.inventoryDetail.hidden = false;
