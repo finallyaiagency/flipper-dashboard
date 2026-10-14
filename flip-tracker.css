@@ -1478,7 +1478,7 @@ body[data-tracker-mode="inventory"] .review-grid { display:none; }
 .inventory-marker.cost-marker { color:#ff8585; }
 .inventory-marker.suggested-marker { color:#ffcc5c; height:95px; }
 .inventory-marker.ask-marker { color:var(--hud); height:118px; }
-.inventory-marker.retail-marker { color:#e39dff; height:135px; }
+.inventory-marker.retail-marker { color:#e39dff; height:150px; left:auto; }
 .inventory-price-legend { display:flex; flex-wrap:wrap; gap:10px 16px; color:var(--muted); font-size:.76rem; margin-top:8px; }
 .inventory-card[role="button"] { cursor:pointer; }
 .inventory-card[role="button"]:focus-visible { outline:2px solid var(--hud); outline-offset:2px; }
