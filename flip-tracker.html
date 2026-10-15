@@ -58,8 +58,8 @@
                     <a id="inventory-detail-new-link" class="inventory-link" target="_blank" rel="noopener">Look up current new price ↗</a>
                 </div>
                 <div class="retail-comp-entry">
-                    <label for="inventory-retail-price"><span>New-price anchor (current or original MSRP)</span><input id="inventory-retail-price" type="number" min="0" step="1" inputmode="decimal" placeholder="Enter verified new price"></label>
-                    <small id="inventory-retail-context">Use a verified current price, or an estimated original MSRP when discontinued. The graph updates immediately.</small>
+                    <label for="inventory-retail-price"><span>Shared new-price anchor</span><input id="inventory-retail-price" type="number" readonly aria-readonly="true"></label>
+                    <small id="inventory-retail-context">Loaded from Groundbnb Store. Update the New Price Anchor, Basis, and Source columns in Inventory Register.</small>
                 </div>
                 <div class="inventory-price-scale" aria-label="Price positioning scale">
                     <div class="inventory-zone inventory-buy-zone"><span>Buy zone</span><small>Cost basis / capital at risk</small></div>
@@ -284,6 +284,6 @@
     <script src="scan-db.js?v=20260907-1"></script>
     <script src="scan-feed.js?v=20260907-1"></script>
     <script src="flip-tracker-data.js?v=20260530-1"></script>
-    <script src="flip-tracker-v7.js"></script>
+    <script src="flip-tracker-v8.js"></script>
 </body>
 </html>
