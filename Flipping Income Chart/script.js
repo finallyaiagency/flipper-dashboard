@@ -486,6 +486,11 @@
         const expensePerSale = expenseRecord && Number.isFinite(toNumber(expenseRecord.Value)) ? toNumber(expenseRecord.Value) : 5;
         const computedAdjustedProfit = computedProfit - expensePerSale * computedSoldUnits;
         const adjustedProfit = metricValue("Adjusted Profit", computedAdjustedProfit, useSheetKpis);
+        const taxRateRecord = kpiMetrics.get("Tax Reserve Rate");
+        let taxRate = taxRateRecord ? toNumber(taxRateRecord.Value) : 0.35;
+        if (Number.isFinite(taxRate) && taxRate > 1.5) taxRate = taxRate / 100;
+        if (!Number.isFinite(taxRate) || taxRate < 0 || taxRate >= 1) taxRate = 0.35;
+        const adjustedProfitAfterTax = metricValue("Adjusted Profit After Tax", adjustedProfit * (1 - taxRate), useSheetKpis);
         const thirtyDayAdjReturn = useSheetKpis && kpiMetrics.has("30-Day Adjusted Return") ? toNumber(kpiMetrics.get("30-Day Adjusted Return").Value) : null;
         const thirtyDayOcReturn = useSheetKpis && kpiMetrics.has("30-Day Adjusted Return After Opportunity Cost") ? toNumber(kpiMetrics.get("30-Day Adjusted Return After Opportunity Cost").Value) : null;
         const inventoryCount = metricValue("Tracked Active Inventory Units", computedActiveUnits, useSheetKpis);
@@ -521,12 +526,17 @@
         const totalHours = timeMinutes / 60;
         const computedProfitPerHour = totalHours > 0 ? computedAdjustedProfit / totalHours : 0;
         const profitPerHour = metricValue("Adjusted Profit / Labor Hour", computedProfitPerHour, useSheetKpis);
+        const profitPerHourAfterTax = metricValue("Adjusted Profit / Hour After Tax", profitPerHour * (1 - taxRate), useSheetKpis);
         const avgTimePerSale = metricValue("Average Time per Sale (min)", soldUnits ? timeMinutes / soldUnits : 0, useSheetKpis);
         const hasTimeData = timeMinutes > 0 || (useSheetKpis && kpiMetrics.has("Adjusted Profit / Labor Hour"));
         const latestMonthlyProfitPerInventory = latestFinite(daily.map((row) => row.monthlyProfitPerInventory));
 
         setText("total-profit", money.format(totalProfit));
         setText("adjusted-profit", money.format(adjustedProfit));
+        setText("adjusted-profit-after-tax", money.format(adjustedProfitAfterTax));
+        const taxPctLabel = `${Math.round(taxRate * 1000) / 10}%`;
+        setText("adjusted-profit-after-tax-label", `Adjusted Profit After Tax (${taxPctLabel} reserve)`);
+        setText("profit-per-hour-after-tax-label", `Adj. Profit / Hour After Tax (${taxPctLabel} reserve)`);
         setText("thirty-day-adjusted-return", thirtyDayAdjReturn == null || !Number.isFinite(thirtyDayAdjReturn) ? "n/a" : formatRatio(thirtyDayAdjReturn));
         setText("thirty-day-adjusted-return-oc", thirtyDayOcReturn == null || !Number.isFinite(thirtyDayOcReturn) ? "n/a" : formatRatio(thirtyDayOcReturn));
         setText("gross-margin", formatRatio(grossMargin));
@@ -557,6 +567,7 @@
         setText("ad-gap", hasAdGapMetric ? number.format(adGap) : "n/a");
         setText("avg-paid-percent-seller-asking", formatRatio(avgPaidVsSellerAsking));
         setText("profit-per-hour", hasTimeData ? moneyTwoDecimals.format(profitPerHour) : "n/a");
+        setText("profit-per-hour-after-tax", hasTimeData ? moneyTwoDecimals.format(profitPerHourAfterTax) : "n/a");
         setText("avg-time-per-sale", hasTimeData ? `${number.format(Math.round(avgTimePerSale))} min` : "n/a");
     }
 
