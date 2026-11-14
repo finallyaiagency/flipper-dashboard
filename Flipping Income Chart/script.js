@@ -482,6 +482,11 @@
         const salesRevenue = metricValue("Realized Revenue", computedRevenue, useSheetKpis);
         const totalProfit = metricValue("Realized Gross Profit", computedProfit, useSheetKpis);
         const soldUnits = metricValue("Sold Units", computedSoldUnits, useSheetKpis);
+        const expenseRecord = kpiMetrics.get("Variable Expenses per Sale");
+        const expensePerSale = expenseRecord && Number.isFinite(toNumber(expenseRecord.Value)) ? toNumber(expenseRecord.Value) : 5;
+        const computedAdjustedProfit = computedProfit - expensePerSale * computedSoldUnits;
+        const adjustedProfit = metricValue("Adjusted Profit", computedAdjustedProfit, useSheetKpis);
+        const thirtyDayAdjReturn = useSheetKpis && kpiMetrics.has("30-Day Adjusted Return") ? toNumber(kpiMetrics.get("30-Day Adjusted Return").Value) : null;
         const inventoryCount = metricValue("Tracked Active Inventory Units", computedActiveUnits, useSheetKpis);
         const inventoryCost = metricValue("Active Cost Basis", sum(inventoryRows, COLS.buyPrice), useSheetKpis);
         const activeAskingRows = inventoryRows.filter((row) => !ACTIVE_ASKING_EXCLUDED_ASSET_IDS.has(String(row[COLS.assetId]).trim()));
@@ -513,13 +518,15 @@
         const avgPaidVsSellerAsking = averageRatio([...soldRows, ...inventoryRows], COLS.buyPrice, COLS.asking);
         const timeMinutes = sum(soldRows, COLS.timeSpent);
         const totalHours = timeMinutes / 60;
-        const computedProfitPerHour = totalHours > 0 ? totalProfit / totalHours : 0;
+        const computedProfitPerHour = totalHours > 0 ? computedAdjustedProfit / totalHours : 0;
         const profitPerHour = metricValue("Adjusted Profit / Labor Hour", computedProfitPerHour, useSheetKpis);
         const avgTimePerSale = metricValue("Average Time per Sale (min)", soldUnits ? timeMinutes / soldUnits : 0, useSheetKpis);
         const hasTimeData = timeMinutes > 0 || (useSheetKpis && kpiMetrics.has("Adjusted Profit / Labor Hour"));
         const latestMonthlyProfitPerInventory = latestFinite(daily.map((row) => row.monthlyProfitPerInventory));
 
         setText("total-profit", money.format(totalProfit));
+        setText("adjusted-profit", money.format(adjustedProfit));
+        setText("thirty-day-adjusted-return", thirtyDayAdjReturn == null || !Number.isFinite(thirtyDayAdjReturn) ? "n/a" : formatRatio(thirtyDayAdjReturn));
         setText("gross-margin", formatRatio(grossMargin));
         setText("monthly-profit-inventory", latestMonthlyProfitPerInventory == null ? "n/a" : formatRatio(latestMonthlyProfitPerInventory));
         setText("sales-revenue", money.format(salesRevenue));
