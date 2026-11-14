@@ -252,7 +252,7 @@
         async function loadLiveSales() {
             const status = document.getElementById('sales-source');
             try {
-                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent('Sales Ledger')}&range=A1:L1000&headers=1&tqx=out:json`;
+                const url = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?sheet=${encodeURIComponent('Sales Ledger')}&range=A1:N1000&headers=1&tqx=out:json`;
                 const response = await fetch(url, { cache: 'no-store' });
                 const text = await response.text();
                 const payload = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1));

@@ -28,6 +28,8 @@
         source: "Source",
         notes: "Notes",
         status: "Status",
+        timeSpent: "Time Spent (min)",
+        profitPerHour: "Gross Profit / Hour",
         sold: "Sold",
         inventory: "In Inventory",
     };
@@ -55,6 +57,8 @@
         "Potential Gross Profit",
         "Potential ROI",
         "Status",
+        "Time Spent (min)",
+        "Gross Profit / Hour",
     ];
     const TRACE_DEFS = [
         ["inventoryValue", "Inventory Cost Basis", null, true, "money", "Daily cash tied up in active inventory at cost basis. Shows how much buying capital is sitting on the shelf."],
@@ -111,7 +115,7 @@
         try {
             const [inventory, sales, kpis] = await Promise.all([
                 fetchGviz(INVENTORY_SHEET, "A1:V1000"),
-                fetchGviz(SALES_SHEET, "A1:K1000"),
+                fetchGviz(SALES_SHEET, "A1:N1000"),
                 fetchGviz(KPI_SHEET, "A1:D100"),
             ]);
             const transformed = transformGroundbnbRows(inventory.records, sales.records);
@@ -236,6 +240,8 @@
                 cleanNumberish(record["Potential Gross Profit"]),
                 cleanNumberish(record["Potential ROI"]),
                 status,
+                sold ? cleanNumberish(sale["Time Spent (min)"]) : "",
+                sold ? cleanNumberish(sale["Gross Profit / Hour"]) : "",
             ];
         }).filter(Boolean);
 
@@ -505,6 +511,12 @@
         const inventoryTurnover = inventoryCost ? salesRevenue / inventoryCost : 0;
         const zeroCostShare = soldUnits ? freeSoldUnits / soldUnits : 0;
         const avgPaidVsSellerAsking = averageRatio([...soldRows, ...inventoryRows], COLS.buyPrice, COLS.asking);
+        const timeMinutes = sum(soldRows, COLS.timeSpent);
+        const totalHours = timeMinutes / 60;
+        const computedProfitPerHour = totalHours > 0 ? totalProfit / totalHours : 0;
+        const profitPerHour = metricValue("Adjusted Profit / Labor Hour", computedProfitPerHour, useSheetKpis);
+        const avgTimePerSale = metricValue("Average Time per Sale (min)", soldUnits ? timeMinutes / soldUnits : 0, useSheetKpis);
+        const hasTimeData = timeMinutes > 0 || (useSheetKpis && kpiMetrics.has("Adjusted Profit / Labor Hour"));
         const latestMonthlyProfitPerInventory = latestFinite(daily.map((row) => row.monthlyProfitPerInventory));
 
         setText("total-profit", money.format(totalProfit));
@@ -535,6 +547,8 @@
         setText("marketplace-ads", marketplaceAds ? number.format(marketplaceAds) : "n/a");
         setText("ad-gap", hasAdGapMetric ? number.format(adGap) : "n/a");
         setText("avg-paid-percent-seller-asking", formatRatio(avgPaidVsSellerAsking));
+        setText("profit-per-hour", hasTimeData ? moneyTwoDecimals.format(profitPerHour) : "n/a");
+        setText("avg-time-per-sale", hasTimeData ? `${number.format(Math.round(avgTimePerSale))} min` : "n/a");
     }
 
     function renderCategoryFilter(categories) {
