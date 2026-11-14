@@ -487,6 +487,7 @@
         const computedAdjustedProfit = computedProfit - expensePerSale * computedSoldUnits;
         const adjustedProfit = metricValue("Adjusted Profit", computedAdjustedProfit, useSheetKpis);
         const thirtyDayAdjReturn = useSheetKpis && kpiMetrics.has("30-Day Adjusted Return") ? toNumber(kpiMetrics.get("30-Day Adjusted Return").Value) : null;
+        const thirtyDayOcReturn = useSheetKpis && kpiMetrics.has("30-Day Adjusted Return After Opportunity Cost") ? toNumber(kpiMetrics.get("30-Day Adjusted Return After Opportunity Cost").Value) : null;
         const inventoryCount = metricValue("Tracked Active Inventory Units", computedActiveUnits, useSheetKpis);
         const inventoryCost = metricValue("Active Cost Basis", sum(inventoryRows, COLS.buyPrice), useSheetKpis);
         const activeAskingRows = inventoryRows.filter((row) => !ACTIVE_ASKING_EXCLUDED_ASSET_IDS.has(String(row[COLS.assetId]).trim()));
@@ -527,6 +528,7 @@
         setText("total-profit", money.format(totalProfit));
         setText("adjusted-profit", money.format(adjustedProfit));
         setText("thirty-day-adjusted-return", thirtyDayAdjReturn == null || !Number.isFinite(thirtyDayAdjReturn) ? "n/a" : formatRatio(thirtyDayAdjReturn));
+        setText("thirty-day-adjusted-return-oc", thirtyDayOcReturn == null || !Number.isFinite(thirtyDayOcReturn) ? "n/a" : formatRatio(thirtyDayOcReturn));
         setText("gross-margin", formatRatio(grossMargin));
         setText("monthly-profit-inventory", latestMonthlyProfitPerInventory == null ? "n/a" : formatRatio(latestMonthlyProfitPerInventory));
         setText("sales-revenue", money.format(salesRevenue));
