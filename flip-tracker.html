@@ -118,15 +118,47 @@
                         <strong>Comp-based pricing</strong>
                     </div>
                     <div class="input-grid compact">
-                        <label><span>Item / OCR note</span><input id="cockpit-item-name" value="Portable power station"></label>
-                        <label><span>Category</span><input id="cockpit-category" value="Power Station"></label>
+                        <label class="match-wrap"><span>Item / OCR note</span><input id="cockpit-item-name" value="Portable power station" autocomplete="off"><div id="cockpit-match-list" class="match-list" hidden></div></label>
+                        <label><span>Category</span><select id="cockpit-category">
+                            <option selected>Power Station</option>
+                            <option>Rigid kayak</option>
+                            <option>Inflatable kayak</option>
+                            <option>Inflatable SUP</option>
+                            <option>Rigid SUP</option>
+                            <option>Solar Panels</option>
+                            <option>Paddles</option>
+                            <option>Electronics</option>
+                            <option>Other</option>
+                        </select></label>
                         <label><span>Seller ask</span><input id="cockpit-seller-ask" type="number" inputmode="decimal" value="200"></label>
+                        <label><span>Capacity (Wh)</span><input id="cockpit-capacity" type="number" inputmode="decimal" placeholder="e.g. 1024"></label>
                         <label><span>New retail</span><input id="cockpit-retail" type="number" inputmode="decimal" value="350"></label>
                         <label><span>Used comp low</span><input id="cockpit-used-low" type="number" inputmode="decimal" value="220"></label>
                         <label><span>Used comp median</span><input id="cockpit-used-median" type="number" inputmode="decimal" value="275"></label>
                         <label><span>Used comp high</span><input id="cockpit-used-high" type="number" inputmode="decimal" value="325"></label>
                         <label><span>Condition 1-10</span><input id="cockpit-condition" type="number" inputmode="decimal" min="1" max="10" value="8"></label>
                         <label><span>Storage burden</span><select id="cockpit-storage"><option>Low</option><option selected>Medium</option><option>High</option><option>Very High</option></select></label>
+                    </div>
+                    <p id="cockpit-match-status" class="helper-copy">Type the item name to match it against your Sales Ledger + Inventory Register.</p>
+                    <div class="source-toggle" role="group" aria-label="Asking price source">
+                        <span>Asking price is</span>
+                        <label><input type="radio" name="cockpit-source" value="local" checked> Local pickup</label>
+                        <label><input type="radio" name="cockpit-source" value="ebay"> eBay delivered</label>
+                    </div>
+                    <div id="cockpit-track-record" class="track-record" hidden>
+                        <div class="card-heading">
+                            <span>Your track record</span>
+                            <strong id="cockpit-track-scope">—</strong>
+                        </div>
+                        <div class="track-stats">
+                            <div><span>Units sold</span><strong id="cockpit-tr-units">—</strong></div>
+                            <div><span>Avg paid</span><strong id="cockpit-tr-paid">—</strong></div>
+                            <div><span>Avg sale</span><strong id="cockpit-tr-sale">—</strong></div>
+                            <div><span>Avg profit</span><strong id="cockpit-tr-profit">—</strong></div>
+                            <div><span>Median profit</span><strong id="cockpit-tr-median">—</strong></div>
+                            <div><span>Avg ROI</span><strong id="cockpit-tr-roi">—</strong></div>
+                            <div><span>Avg days to sell</span><strong id="cockpit-tr-days">—</strong></div>
+                        </div>
                     </div>
                     <div class="cockpit-actions">
                         <button id="use-selected-record" class="reset-btn" type="button">Use Selected Ad</button>
@@ -144,7 +176,10 @@
                         <div><span>Best ask</span><strong id="cockpit-best-ask">$0</strong></div>
                         <div><span>Accept floor</span><strong id="cockpit-accept-floor">$0</strong></div>
                         <div><span>Expected profit</span><strong id="cockpit-profit">$0</strong></div>
+                        <div><span>All-in cost</span><strong id="cockpit-all-in">$0</strong></div>
+                        <div><span>Max buy @ avg profit</span><strong id="cockpit-max-buy-avg">—</strong></div>
                     </div>
+                    <p id="cockpit-verdict-line" class="verdict-line" hidden></p>
                     <div class="result-meta">
                         <span id="cockpit-roi">ROI -</span>
                         <span id="cockpit-confidence">Confidence -</span>

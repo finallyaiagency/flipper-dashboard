@@ -37,6 +37,21 @@
     let selectedInventoryId = null;
     let trackerMode = "opportunities";
 
+    // Purchase evaluator: ledger matching + track record (2026-11-18).
+    // True camera-vision identification is not possible in a static page
+    // without an API key/backend, so identification is fuzzy matching
+    // against the user's own Sales Ledger + Inventory Register.
+    const SALES_SHEET = "Sales Ledger";
+    const SALES_CACHE_KEY = "flip-tracker:sales-ledger:v1";
+    const EBAY_TAX_RATE = 0.0725; // planning rate; tax on the full pre-coupon ask
+    const PICKUP_PREMIUM_SMALL_WH = 20; // power stations under 1 kWh
+    const PICKUP_PREMIUM_LARGE_WH = 60; // power stations 1 kWh and up
+    const PICKUP_PREMIUM_WH_THRESHOLD = 1000;
+    let salesRecords = [];
+    let matchCorpus = []; // { name, category, soldUnits, inInventory }
+    let currentTrackRecord = null; // { scope, units, avgPaid, avgSale, avgProfit, medianProfit, avgRoi, avgDays }
+    let lastBestMatchKey = "";
+
 
     const state = {
         filtered: [],
@@ -88,7 +103,19 @@
         cockpitFileLabel: document.getElementById("cockpit-file-label"),
         cockpitPreview: document.getElementById("cockpit-preview"),
         cockpitItemName: document.getElementById("cockpit-item-name"),
+        cockpitMatchList: document.getElementById("cockpit-match-list"),
+        cockpitMatchStatus: document.getElementById("cockpit-match-status"),
         cockpitCategory: document.getElementById("cockpit-category"),
+        cockpitCapacity: document.getElementById("cockpit-capacity"),
+        cockpitTrackRecord: document.getElementById("cockpit-track-record"),
+        cockpitTrackScope: document.getElementById("cockpit-track-scope"),
+        cockpitTrUnits: document.getElementById("cockpit-tr-units"),
+        cockpitTrPaid: document.getElementById("cockpit-tr-paid"),
+        cockpitTrSale: document.getElementById("cockpit-tr-sale"),
+        cockpitTrProfit: document.getElementById("cockpit-tr-profit"),
+        cockpitTrMedian: document.getElementById("cockpit-tr-median"),
+        cockpitTrRoi: document.getElementById("cockpit-tr-roi"),
+        cockpitTrDays: document.getElementById("cockpit-tr-days"),
         cockpitSellerAsk: document.getElementById("cockpit-seller-ask"),
         cockpitRetail: document.getElementById("cockpit-retail"),
         cockpitUsedLow: document.getElementById("cockpit-used-low"),
@@ -104,6 +131,9 @@
         cockpitRoi: document.getElementById("cockpit-roi"),
         cockpitConfidence: document.getElementById("cockpit-confidence"),
         cockpitPersonalFit: document.getElementById("cockpit-personal-fit"),
+        cockpitAllIn: document.getElementById("cockpit-all-in"),
+        cockpitMaxBuyAvg: document.getElementById("cockpit-max-buy-avg"),
+        cockpitVerdictLine: document.getElementById("cockpit-verdict-line"),
         cockpitRiskNotes: document.getElementById("cockpit-risk-notes"),
         useSelectedRecord: document.getElementById("use-selected-record"),
         copyCockpitPrompt: document.getElementById("copy-cockpit-prompt"),
@@ -588,17 +618,35 @@
         const targetCosts = Math.max(10, bestAsk * 0.08);
         const targetProfit = Math.max(35, bestAsk * 0.28);
         const maxPay = Math.max(0, acceptFloor - targetCosts - targetProfit);
-        const expectedProfit = Math.max(0, acceptFloor - sellerAsk - targetCosts);
-        const roi = sellerAsk > 0 ? (expectedProfit / sellerAsk) * 100 : 0;
-        const spread = sellerAsk > 0 ? (maxPay - sellerAsk) / sellerAsk : 0;
-        let verdict = "PASS";
-        if (sellerAsk <= maxPay && roi >= 45) verdict = "BUY";
-        else if (sellerAsk <= maxPay * 1.12 && roi >= 25) verdict = "MAYBE / NEGOTIATE";
-        else if (personalUseFit(category).includes("Possible")) verdict = "PERSONAL USE ONLY UNLESS CHEAPER";
+        // All-in cost: eBay delivered = ask + 7.25% tax on the full ask;
+        // local pickup = ask + tiered pickup premium for power stations.
+        const source = cockpitSource();
+        const capacityWh = numFromInput(els.cockpitCapacity);
+        const allIn = allInCost(sellerAsk, source, category, els.cockpitItemName.value, capacityWh);
+        const expectedProfit = acceptFloor - allIn.allIn - targetCosts;
+        const roi = allIn.allIn > 0 ? (expectedProfit / allIn.allIn) * 100 : 0;
+        // Verdict: expected profit vs the track-record average profit for
+        // this item/category. A NO-GO always names the yes-price.
+        let verdict;
+        let maxBuyAvg = null;
+        if (currentTrackRecord && currentTrackRecord.avgProfit != null) {
+            const avgProfit = currentTrackRecord.avgProfit;
+            if (expectedProfit >= avgProfit) verdict = "GO";
+            else if (expectedProfit >= Math.max(20, avgProfit * 0.5)) verdict = "MARGINAL";
+            else verdict = "NO-GO";
+            const target = acceptFloor - targetCosts - avgProfit;
+            maxBuyAvg = Math.max(0, source === "ebay" ? target / (1 + EBAY_TAX_RATE) : target - allIn.extra);
+        } else {
+            if (sellerAsk <= maxPay && roi >= 45) verdict = "GO";
+            else if (sellerAsk <= maxPay * 1.12 && roi >= 25) verdict = "MARGINAL";
+            else verdict = "NO-GO";
+        }
 
         const confidence = [usedLow, usedMedian, usedHigh, retail].filter((value) => value > 0).length;
         const notes = [];
+        notes.push(`All-in cost ${money(allIn.allIn)} (${money(sellerAsk)} ask ${allIn.extraLabel}).`);
         if (sellerAsk > maxPay) notes.push(`Seller ask is ${money(sellerAsk - maxPay)} above target max pay.`);
+        if (allIn.premiumApplies && !allIn.premiumKnown) notes.push("Pickup premium unknown — enter capacity (Wh) for the $20 (<1 kWh) / $60 (1 kWh+) tier.");
         if (storagePenalty(storage) >= 0.1) notes.push("Bulky storage burden: require a bigger margin or faster sale.");
         if (retail && bestAsk > retail * 0.9) notes.push("Used asking estimate is close to new retail; verify comps before buying.");
         if (personalUseFit(category).includes("Unload")) notes.push("Treat as unload/personal asset, not flip-profit inventory.");
@@ -609,17 +657,33 @@
         els.cockpitBestAsk.textContent = money(bestAsk);
         els.cockpitAcceptFloor.textContent = money(acceptFloor);
         els.cockpitProfit.textContent = money(expectedProfit);
+        if (els.cockpitAllIn) els.cockpitAllIn.textContent = money(allIn.allIn);
+        if (els.cockpitMaxBuyAvg) els.cockpitMaxBuyAvg.textContent = maxBuyAvg == null ? "—" : money(maxBuyAvg);
         els.cockpitRoi.textContent = `ROI ${pct(roi)}`;
         els.cockpitConfidence.textContent = `Confidence ${confidence >= 3 ? "Medium/High" : "Low"}`;
         els.cockpitPersonalFit.textContent = `Personal fit ${personalUseFit(category)}`;
         els.cockpitRiskNotes.innerHTML = notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+        if (els.cockpitVerdictLine) {
+            if (currentTrackRecord && currentTrackRecord.avgProfit != null) {
+                let yesPrice = "";
+                if (verdict === "NO-GO") {
+                    yesPrice = ` Yes at ${money(maxBuyAvg)} ask or less`;
+                    if (allIn.premiumApplies && !allIn.premiumKnown) yesPrice += " before the pickup premium";
+                    yesPrice += ".";
+                }
+                els.cockpitVerdictLine.textContent = `Expected profit ${money(expectedProfit)} vs your ${currentTrackRecord.scope} average profit ${money(currentTrackRecord.avgProfit)} — ${verdict}.${yesPrice}`;
+            } else {
+                els.cockpitVerdictLine.textContent = "No sales history for this item or category yet — verdict is from comps only.";
+            }
+            els.cockpitVerdictLine.hidden = false;
+        }
     }
 
     function loadSelectedRecordIntoCockpit() {
         const record = selectedRecord();
         if (!record) return;
         els.cockpitItemName.value = record.title || "";
-        els.cockpitCategory.value = getAny(record.values, ["Category", "Type"]) || "Review";
+        setCategory(getAny(record.values, ["Category", "Type"]) || "Review");
         setInputValue(els.cockpitSellerAsk, record.ask);
         setInputValue(els.cockpitRetail, record.newEstimate || record.listPrice);
         setInputValue(els.cockpitUsedMedian, record.acceptPrice || record.listPrice || record.ask);
@@ -627,6 +691,7 @@
         setInputValue(els.cockpitUsedHigh, record.newEstimate || record.listPrice || record.ask);
         const condition = getAny(record.values, ["Condition Stated", "Condition", "Condition From Photos"]);
         els.cockpitCondition.value = /new/i.test(condition) ? "9" : /fair|parts|repair/i.test(condition) ? "5" : "7";
+        updateTrackRecord();
         analyzeCockpitCandidate();
     }
 
@@ -655,6 +720,275 @@
             els.cockpitPreview.hidden = true;
             els.cockpitFileLabel.textContent += " · PDF ready for future extraction";
         }
+        if (els.cockpitMatchStatus) {
+            els.cockpitMatchStatus.textContent = "Photo attached — type the item name below to identify it against your Sales Ledger + Inventory Register.";
+        }
+    }
+
+    // ---- Purchase evaluator: ledger matching + track record ----
+
+    function normalizeText(value) {
+        return String(value || "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    }
+
+    async function fetchGvizTable(sheetName, range) {
+        const url = "https://docs.google.com/spreadsheets/d/12TELzT2bzIxdry3pyLvSv3hdWJpkdvGC25aSlvsBq94/gviz/tq?sheet=" + encodeURIComponent(sheetName) + "&range=" + encodeURIComponent(range) + "&headers=1&tqx=out:json";
+        const response = await fetch(url, { cache: "no-store" });
+        if (!response.ok) throw new Error(sheetName + " HTTP " + response.status);
+        const text = await response.text();
+        const start = text.indexOf("{");
+        const end = text.lastIndexOf("}");
+        if (start < 0 || end <= start) throw new Error(sheetName + " returned unexpected data");
+        const table = JSON.parse(text.slice(start, end + 1)).table;
+        const headers = (table.cols || []).map((column, index) => String(column.label || column.id || "Column " + (index + 1)).trim());
+        return {
+            headers,
+            rows: (table.rows || []).map((row) => {
+                const record = {};
+                headers.forEach((header, colIndex) => {
+                    const cell = row.c?.[colIndex];
+                    record[header] = cell?.f ?? cell?.v ?? "";
+                });
+                return record;
+            })
+        };
+    }
+
+    async function refreshSalesLedger() {
+        try {
+            const table = await fetchGvizTable(SALES_SHEET, "A1:N1000");
+            salesRecords = table.rows.filter((row) => String(row["Item Name"] || "").trim() !== "");
+            try { localStorage.setItem(SALES_CACHE_KEY, JSON.stringify(salesRecords)); } catch (_e) {}
+        } catch (error) {
+            try { salesRecords = JSON.parse(localStorage.getItem(SALES_CACHE_KEY) || "[]"); } catch (_e) { salesRecords = []; }
+        }
+        rebuildMatchCorpus();
+        populateCategoryOptions();
+        updateTrackRecord();
+        analyzeCockpitCandidate();
+    }
+
+    function rebuildMatchCorpus() {
+        const byName = new Map();
+        const addEntry = (name, category, sold) => {
+            const cleanName = String(name || "").trim();
+            if (!cleanName) return;
+            const key = normalizeText(cleanName);
+            if (!key) return;
+            const entry = byName.get(key) || { name: cleanName, category: String(category || "Other").trim() || "Other", soldUnits: 0, inInventory: false };
+            if (sold) entry.soldUnits += 1;
+            else entry.inInventory = true;
+            if (entry.category === "Other" && category && String(category).trim()) entry.category = String(category).trim();
+            byName.set(key, entry);
+        };
+        salesRecords.forEach((row) => addEntry(row["Item Name"], row.Category, Number(parseMoney(row["Sale Price"])) > 0));
+        inventoryRecords.forEach((record) => addEntry(record.name, record.category, false));
+        matchCorpus = Array.from(byName.values()).sort((a, b) => b.soldUnits - a.soldUnits || a.name.localeCompare(b.name));
+    }
+
+    function scoreMatch(query, entry) {
+        const queryTokens = normalizeText(query).split(" ").filter((token) => token.length >= 2);
+        if (!queryTokens.length) return 0;
+        const name = normalizeText(entry.name);
+        const category = normalizeText(entry.category);
+        let score = 0;
+        for (const token of queryTokens) {
+            if (name.split(" ").includes(token)) score += 3;
+            else if (name.includes(token)) score += 2;
+            else if (category.split(" ").includes(token)) score += 1;
+            else return 0; // every token must hit the name or the category
+        }
+        if (name.includes(normalizeText(query))) score += 2;
+        if (name.startsWith(normalizeText(query))) score += 1;
+        score += Math.min(entry.soldUnits, 5) * 0.2;
+        return score;
+    }
+
+    function fuzzyMatches(query, limit) {
+        if (normalizeText(query).length < 2) return [];
+        return matchCorpus
+            .map((entry) => ({ entry, score: scoreMatch(query, entry) }))
+            .filter((hit) => hit.score > 0)
+            .sort((a, b) => b.score - a.score || b.entry.soldUnits - a.entry.soldUnits || a.entry.name.localeCompare(b.entry.name))
+            .slice(0, limit || 5)
+            .map((hit) => hit.entry);
+    }
+
+    function renderMatchSuggestions() {
+        if (!els.cockpitMatchList) return;
+        const query = els.cockpitItemName.value;
+        const matches = fuzzyMatches(query, 5);
+        if (!matches.length) {
+            lastBestMatchKey = "";
+            els.cockpitMatchList.hidden = true;
+            els.cockpitMatchList.innerHTML = "";
+            if (els.cockpitMatchStatus) els.cockpitMatchStatus.textContent = "No match in your ledger — category stats will be used once you pick a category.";
+            updateTrackRecord();
+            analyzeCockpitCandidate();
+            return;
+        }
+        els.cockpitMatchList.innerHTML = matches.map((entry) => {
+            const meta = entry.soldUnits > 0 ? `Sold ${entry.soldUnits}×` : (entry.inInventory ? "In inventory" : "In ledger");
+            return `<button type="button" class="match-item" data-name="${escapeAttr(entry.name)}" data-category="${escapeAttr(entry.category)}"><strong>${escapeHtml(entry.name)}</strong><small>${escapeHtml(entry.category)} · ${escapeHtml(meta)}</small></button>`;
+        }).join("");
+        els.cockpitMatchList.hidden = false;
+        if (els.cockpitMatchStatus) els.cockpitMatchStatus.textContent = `Best match: ${matches[0].name} (${matches[0].category}) — tap a suggestion to confirm, or keep typing.`;
+        // Pre-fill the category from the best match, but only when the best
+        // match itself changes, so a manual category pick is not overwritten.
+        const bestKey = normalizeText(matches[0].name);
+        if (bestKey !== lastBestMatchKey) {
+            lastBestMatchKey = bestKey;
+            setCategory(matches[0].category);
+        }
+        updateTrackRecord();
+        analyzeCockpitCandidate();
+    }
+
+    function selectMatch(name, category) {
+        els.cockpitItemName.value = name;
+        setCategory(category);
+        lastBestMatchKey = normalizeText(name);
+        if (els.cockpitMatchList) {
+            els.cockpitMatchList.hidden = true;
+            els.cockpitMatchList.innerHTML = "";
+        }
+        if (els.cockpitMatchStatus) els.cockpitMatchStatus.textContent = `Matched: ${name} (${category}).`;
+        updateTrackRecord();
+        analyzeCockpitCandidate();
+    }
+
+    function setCategory(value) {
+        const clean = String(value || "").trim();
+        if (!clean || !els.cockpitCategory) return;
+        if (!Array.from(els.cockpitCategory.options).some((opt) => opt.value === clean)) {
+            const option = document.createElement("option");
+            option.value = clean;
+            option.textContent = clean;
+            els.cockpitCategory.appendChild(option);
+        }
+        els.cockpitCategory.value = clean;
+    }
+
+    function populateCategoryOptions() {
+        if (!els.cockpitCategory) return;
+        const current = els.cockpitCategory.value;
+        const categories = Array.from(new Set([
+            ...salesRecords.map((row) => String(row.Category || "").trim()),
+            ...inventoryRecords.map((record) => String(record.category || "").trim())
+        ].filter(Boolean))).sort((a, b) => a.localeCompare(b));
+        if (!categories.length) return;
+        els.cockpitCategory.innerHTML = categories.map((category) => `<option value="${escapeAttr(category)}">${escapeHtml(category)}</option>`).join("");
+        if (current && categories.includes(current)) els.cockpitCategory.value = current;
+        else if (categories.includes("Power Station")) els.cockpitCategory.value = "Power Station";
+    }
+
+    function summarizeSales(rows) {
+        const sold = rows.filter((row) => Number(parseMoney(row["Sale Price"])) > 0);
+        if (!sold.length) return null;
+        const nums = (key) => sold.map((row) => parseMoney(row[key])).filter((value) => value != null && !Number.isNaN(value));
+        const avg = (values) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+        const median = (values) => {
+            if (!values.length) return null;
+            const sorted = [...values].sort((a, b) => a - b);
+            const mid = Math.floor(sorted.length / 2);
+            return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+        };
+        const profits = nums("Gross Profit");
+        return {
+            units: sold.length,
+            avgPaid: avg(nums("Cost Basis")),
+            avgSale: avg(nums("Sale Price")),
+            avgProfit: avg(profits),
+            medianProfit: median(profits),
+            avgRoi: avg(nums("Markup")),
+            avgDays: avg(nums("Days to Sell"))
+        };
+    }
+
+    function updateTrackRecord() {
+        if (!els.cockpitTrackRecord) return;
+        const nameQuery = normalizeText(els.cockpitItemName.value);
+        const category = els.cockpitCategory ? els.cockpitCategory.value : "";
+        let record = null;
+        let scope = "";
+        if (nameQuery) {
+            const itemRows = salesRecords.filter((row) => normalizeText(row["Item Name"]) === nameQuery);
+            if (itemRows.length) {
+                record = summarizeSales(itemRows);
+                scope = `Exact item: ${String(itemRows[0]["Item Name"]).trim()}`;
+            }
+        }
+        if (!record && nameQuery) {
+            // Unique fuzzy match: every query token hits exactly one sold
+            // item in the ledger, so the track record is that item's, not
+            // the category's. Ambiguous queries fall through to category.
+            const soldMatching = matchCorpus.filter((entry) => entry.soldUnits > 0 && scoreMatch(els.cockpitItemName.value, entry) > 0);
+            if (soldMatching.length === 1) {
+                const itemRows = salesRecords.filter((row) => normalizeText(row["Item Name"]) === normalizeText(soldMatching[0].name));
+                if (itemRows.length) {
+                    record = summarizeSales(itemRows);
+                    scope = `Exact item: ${soldMatching[0].name}`;
+                }
+            }
+        }
+        if (!record && category) {
+            const catRows = salesRecords.filter((row) => String(row.Category || "").trim().toLowerCase() === category.trim().toLowerCase());
+            if (catRows.length) {
+                record = summarizeSales(catRows);
+                scope = `Category: ${category}`;
+            }
+        }
+        currentTrackRecord = record ? { ...record, scope } : null;
+        if (!record) {
+            els.cockpitTrackRecord.hidden = true;
+            return;
+        }
+        els.cockpitTrackRecord.hidden = false;
+        els.cockpitTrackScope.textContent = scope;
+        els.cockpitTrUnits.textContent = String(record.units);
+        els.cockpitTrPaid.textContent = money(record.avgPaid);
+        els.cockpitTrSale.textContent = money(record.avgSale);
+        els.cockpitTrProfit.textContent = money(record.avgProfit);
+        els.cockpitTrMedian.textContent = money(record.medianProfit);
+        els.cockpitTrRoi.textContent = pct(record.avgRoi);
+        els.cockpitTrDays.textContent = record.avgDays == null ? "—" : `${Math.round(record.avgDays)} days`;
+    }
+
+    function isPowerStation(category, itemName) {
+        const haystack = `${category || ""} ${itemName || ""}`.toLowerCase();
+        return /power station|portable power|\bdelta\b|\briver\b|bluetti|ecoflow|anker solix|jackery|pecron|goal zero|\byeti\b/.test(haystack);
+    }
+
+    function pickupPremium(category, itemName, capacityWh) {
+        if (!isPowerStation(category, itemName)) return { premium: 0, applies: false, known: true };
+        if (!(capacityWh > 0)) return { premium: 0, applies: true, known: false };
+        return {
+            premium: capacityWh < PICKUP_PREMIUM_WH_THRESHOLD ? PICKUP_PREMIUM_SMALL_WH : PICKUP_PREMIUM_LARGE_WH,
+            applies: true,
+            known: true
+        };
+    }
+
+    function cockpitSource() {
+        const selected = document.querySelector('input[name="cockpit-source"]:checked');
+        return selected ? selected.value : "local";
+    }
+
+    function allInCost(ask, source, category, itemName, capacityWh) {
+        if (source === "ebay") {
+            const tax = ask * EBAY_TAX_RATE;
+            return { allIn: ask + tax, extra: tax, extraLabel: `+ ${money(tax)} tax (7.25% on full ask)`, premiumApplies: false, premiumKnown: true };
+        }
+        const premium = pickupPremium(category, itemName, capacityWh);
+        return {
+            allIn: ask + premium.premium,
+            extra: premium.premium,
+            extraLabel: premium.applies
+                ? (premium.known ? `+ ${money(premium.premium)} pickup premium` : "+ pickup premium TBD — enter capacity (Wh)")
+                : "no pickup premium",
+            premiumApplies: premium.applies,
+            premiumKnown: premium.known
+        };
     }
 
     function escapeHtml(value) {
@@ -809,6 +1143,10 @@
             els.inventoryStatus.textContent = inventoryRecords.length ? "Showing last cached Groundbnb inventory" : "Could not load inventory: " + error.message;
         }
         renderInventoryView();
+        rebuildMatchCorpus();
+        populateCategoryOptions();
+        updateTrackRecord();
+        analyzeCockpitCandidate();
     }
 
     function setTrackerMode(mode) {
@@ -877,8 +1215,8 @@
         });
         [
             els.cockpitItemName,
-            els.cockpitCategory,
             els.cockpitSellerAsk,
+            els.cockpitCapacity,
             els.cockpitRetail,
             els.cockpitUsedLow,
             els.cockpitUsedMedian,
@@ -891,6 +1229,22 @@
         });
         els.useSelectedRecord?.addEventListener("click", loadSelectedRecordIntoCockpit);
         els.cockpitFile?.addEventListener("change", handleCockpitFile);
+        els.cockpitItemName?.addEventListener("input", renderMatchSuggestions);
+        els.cockpitMatchList?.addEventListener("click", (event) => {
+            const button = event.target.closest(".match-item");
+            if (!button) return;
+            selectMatch(button.dataset.name, button.dataset.category);
+        });
+        document.addEventListener("click", (event) => {
+            if (!event.target.closest(".match-wrap") && els.cockpitMatchList) els.cockpitMatchList.hidden = true;
+        });
+        els.cockpitCategory?.addEventListener("change", () => {
+            updateTrackRecord();
+            analyzeCockpitCandidate();
+        });
+        document.querySelectorAll('input[name="cockpit-source"]').forEach((radio) => {
+            radio.addEventListener("change", analyzeCockpitCandidate);
+        });
         els.copyCockpitPrompt?.addEventListener("click", async () => {
             const text = cockpitPrompt();
             try {
@@ -917,4 +1271,5 @@
     applyFilters();
     analyzeCockpitCandidate();
     initInventoryView();
+    void refreshSalesLedger();
 })();
